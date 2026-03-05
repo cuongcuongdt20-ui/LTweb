@@ -19,7 +19,7 @@ export default function Register(){
         e.preventDefault(); 
         setMessage(''); 
         try{
-            const response = await axios.post('http://localhost:5000/api/users/register', formData); 
+            const response = await axios.post('http://localhost:8080/api/auth/signup', formData); 
             setIsError(false); 
             setMessage('Đăng kí thành công! Bạn có thể đăng nhập ngay')
             console.log('Dữ liệu trả về:', response.data); 

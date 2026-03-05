@@ -21,7 +21,7 @@ export default function Login(){
         setIsLoading(true);
         setError('');
         try{
-            const response =  await axios.post('http://localhost:5000/api/users/login', formData);
+            const response =  await axios.post('http://localhost:8080/api/auth/signin', formData);
             const token = response.data.token; 
             localStorage.setItem('token', token); 
             console.log('Đăng nhập thành công! Token:', token); 

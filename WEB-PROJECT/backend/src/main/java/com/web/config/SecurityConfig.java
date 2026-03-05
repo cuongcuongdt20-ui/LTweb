@@ -82,7 +82,7 @@ public class SecurityConfig {
                 // 3. Quy tắc phân quyền URL
                 .authorizeHttpRequests(auth -> auth
                         // /api/auth/signin và /api/auth/signup → mở hoàn toàn
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/error").permitAll()
                         // Mọi URL khác → phải có JWT token hợp lệ
                         .anyRequest().authenticated())
 

@@ -3,7 +3,7 @@ package com.web.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-
+ 
 @Entity
 @Table(name = "users")
 public class User {
@@ -23,8 +23,8 @@ public class User {
 
     private String avatarUrl;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // Quan hệ
     @OneToMany(mappedBy = "owner")
@@ -114,5 +114,8 @@ public class User {
                 + avatarUrl + ", createdAt=" + createdAt + ", ownedProjects=" + ownedProjects + ", assignedTasks="
                 + assignedTasks + ", reportedTasks=" + reportedTasks + "]";
     }
-
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
