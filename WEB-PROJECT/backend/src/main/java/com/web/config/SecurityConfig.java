@@ -1,4 +1,5 @@
 package com.web.config;
+
 import com.web.security.JwtAuthenticationFilter;
 import com.web.security.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * SecurityConfig — "Sơ đồ an ninh toàn tòa nhà"
  *
  * Định nghĩa:
- *   - Cửa nào mở (không cần token): /api/auth/**
- *   - Cửa nào khóa (cần token): tất cả còn lại
- *   - Bảo vệ nào đứng gác: JwtAuthenticationFilter
- *   - Công cụ mã hóa: BCryptPasswordEncoder
+ * - Cửa nào mở (không cần token): /api/auth/**
+ * - Cửa nào khóa (cần token): tất cả còn lại
+ * - Bảo vệ nào đứng gác: JwtAuthenticationFilter
+ * - Công cụ mã hóa: BCryptPasswordEncoder
  */
 @Configuration
 @EnableWebSecurity
@@ -72,30 +73,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Tắt CSRF — an toàn vì dùng JWT (không dùng cookie/session)
-            .csrf(csrf -> csrf.disable())
+                // 1. Tắt CSRF — an toàn vì dùng JWT (không dùng cookie/session)
+                .csrf(csrf -> csrf.disable())
 
-            // 2. Không lưu session — mỗi request tự mang token theo
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 2. Không lưu session — mỗi request tự mang token theo
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // 3. Quy tắc phân quyền URL
-            .authorizeHttpRequests(auth ->
-                auth
-                    // /api/auth/signin và /api/auth/signup → mở hoàn toàn
-                    .requestMatchers("/api/auth/**").permitAll()
-                    // Mọi URL khác → phải có JWT token hợp lệ
-                    .anyRequest().authenticated()
-            )
+                // 3. Quy tắc phân quyền URL
+                .authorizeHttpRequests(auth -> auth
+                        // /api/auth/signin và /api/auth/signup → mở hoàn toàn
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Mọi URL khác → phải có JWT token hợp lệ
+                        .anyRequest().authenticated())
 
-            // 4. Đăng ký Authentication Provider
-            .authenticationProvider(authenticationProvider())
+                // 4. Đăng ký Authentication Provider
+                .authenticationProvider(authenticationProvider())
 
-            // 5. Đặt JwtFilter TRƯỚC UsernamePasswordAuthenticationFilter
-            //    → Mỗi request đến, filter này chạy trước, đọc token
-            //    → Nếu token hợp lệ, set vào SecurityContext
-            //    → Spring Security thấy đã xác thực → cho qua
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // 5. Đặt JwtFilter TRƯỚC UsernamePasswordAuthenticationFilter
+                // → Mỗi request đến, filter này chạy trước, đọc token
+                // → Nếu token hợp lệ, set vào SecurityContext
+                // → Spring Security thấy đã xác thực → cho qua
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
