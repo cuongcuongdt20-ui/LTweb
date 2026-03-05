@@ -108,4 +108,11 @@ public class User {
         this.reportedTasks = reportedTasks;
     }
 
+    @Override
+    public String toString() {
+        return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + ", avatarUrl="
+                + avatarUrl + ", createdAt=" + createdAt + ", ownedProjects=" + ownedProjects + ", assignedTasks="
+                + assignedTasks + ", reportedTasks=" + reportedTasks + "]";
+    }
+
 }
