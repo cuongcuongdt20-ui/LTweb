@@ -1,15 +1,16 @@
 package com.web.entity;
+
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;
@@ -20,9 +21,18 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(columnDefinition = "TEXT")
     private String avatarUrl;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    // Quan hệ
+    @OneToMany(mappedBy = "owner")
+    private List<Project> ownedProjects;
+
+    @OneToMany(mappedBy = "assignee")
+    private List<Task> assignedTasks;
+
+    @OneToMany(mappedBy = "reporter")
+    private List<Task> reportedTasks;
 }
