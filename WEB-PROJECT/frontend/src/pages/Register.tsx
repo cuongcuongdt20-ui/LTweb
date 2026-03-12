@@ -1,39 +1,39 @@
-import {useState} from 'react'; 
+import { useState } from 'react';
 import axios from 'axios'
 import { Link } from 'react-router-dom';
-export default function Register(){
-    const [formData, setFormData] = useState({
-        name: '', 
-        email: '', 
-        password: ''
-    }); 
-    const [message, setMessage] = useState('');
-    const [isError, setIsError] = useState(false);
-    const handleChange = (e : React.ChangeEvent<HTMLInputElement>) =>{
-        setFormData ({
-            ...formData, 
-            [e.target.name]: e.target.value
-        }); 
-    }; 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault(); 
-        setMessage(''); 
-        try{
-            const response = await axios.post('http://localhost:8080/api/auth/signup', formData); 
-            setIsError(false); 
-            setMessage('Đăng kí thành công! Bạn có thể đăng nhập ngay')
-            console.log('Dữ liệu trả về:', response.data); 
-        }
-        catch(error: any) {
-            setIsError(true); 
-            setMessage(error.response?.data?.error || 'Có lỗi xảy ra khi đăng ký'); 
-        }
+export default function Register() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+  const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage('');
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/signup', formData);
+      setIsError(false);
+      setMessage('Đăng kí thành công! Bạn có thể đăng nhập ngay')
+      console.log('Dữ liệu trả về:', response.data);
     }
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+    catch (error: any) {
+      setIsError(true);
+      setMessage(error.response?.data?.error || 'Có lỗi xảy ra khi đăng ký');
+    }
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
         <h2 className="text-3xl font-bold text-center text-blue-400 mb-8">Tạo Tài Khoản</h2>
-        
+
         {message && (
           <div className={`p-3 rounded mb-4 text-sm text-center ${isError ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
             {message}
@@ -88,12 +88,12 @@ export default function Register(){
           </button>
         </form>
         <p className="mt-6 text-center text-gray-400 text-sm">
-       Đã có tài khoản?{' '}
-       <Link to="/login" className="text-blue-400 hover:underline">
-         Đăng nhập
-       </Link>
-     </p>
+          Đã có tài khoản?{' '}
+          <Link to="/login" className="text-blue-400 hover:underline">
+            Đăng nhập
+          </Link>
+        </p>
       </div>
     </div>
-    )
+  )
 }
