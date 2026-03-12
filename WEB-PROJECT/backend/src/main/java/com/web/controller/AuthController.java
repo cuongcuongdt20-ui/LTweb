@@ -1,11 +1,18 @@
-package com.web.controller;
+﻿package com.web.controller;
 
 import com.web.entity.User;
 import com.web.repository.UserRepository;
+import com.web.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,6 +24,12 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     // ===================== SIGN UP =====================
     @PostMapping("/signup")
@@ -41,19 +54,37 @@ public class AuthController {
     // ===================== SIGN IN =====================
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody User loginRequest) {
+        try {
+            // Xác thực thông qua AuthenticationManager (dùng UserDetailsService + BCrypt)
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        return userRepository.findByEmail(loginRequest.getEmail())
-                .map(user -> {
-                    if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            // Tạo JWT từ thông tin đã xác thực
+            String token = jwtUtils.generateToken(authentication);
 
-                        // TODO: Tạo JWT ở đây
-                        String dummyToken = "jwt_token_demo_123";
+            // Lấy thông tin user để trả về (ẩn password)
+            User user = userRepository.findByEmail(loginRequest.getEmail()).orElse(null);
 
-                        return ResponseEntity.ok(dummyToken);
-                    } else {
-                        return ResponseEntity.badRequest().body("Sai mật khẩu!");
-                    }
-                })
-                .orElse(ResponseEntity.badRequest().body("Email không tồn tại!"));
+            Map<String, Object> profile = new HashMap<>();
+            if (user != null) {
+                profile.put("id", user.getId());
+                profile.put("name", user.getName());
+                profile.put("email", user.getEmail());
+                profile.put("avatarUrl", user.getAvatarUrl());
+            }
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("token", token);
+            body.put("type", "Bearer");
+            body.put("user", profile);
+
+            return ResponseEntity.ok(body);
+        } catch (Exception ex) {
+            return ResponseEntity.status(401).body("Đăng nhập thất bại! Email hoặc mật khẩu không đúng.");
+        }
     }
 }
