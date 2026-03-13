@@ -159,3 +159,169 @@ src
 ---
 
 # 🎉 Chúc bạn chạy project thành công!
+
+---
+
+## API Endpoints (REST)
+
+Lưu ý: Trừ các route `/api/auth/**`, mọi endpoint đều yêu cầu header `Authorization: Bearer <JWT>`.
+
+- Auth
+  - POST `/api/auth/signup` — đăng ký tài khoản
+  - POST `/api/auth/signin` — đăng nhập, trả JWT
+- Project
+  - POST `/api/project/create` — tạo project mới (201 Created + Location)
+  - GET  `/api/project/{id}` — lấy chi tiết project
+  - DELETE `/api/project/delete/{id}` — xóa project (chỉ owner)
+
+### JSON Tests — Auth
+
+Đăng ký:
+```json
+POST /api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Alice Nguyen",
+  "email": "alice@example.com",
+  "password": "12345678",
+  "avatarUrl": "https://example.com/a.png"
+}
+```
+Phản hồi (200 OK):
+```json
+"Đăng ký thành công!"
+```
+
+Đăng nhập:
+```json
+POST /api/auth/signin
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "12345678"
+}
+```
+Phản hồi (200 OK):
+```json
+{
+  "token": "<JWT>",
+  "type": "Bearer",
+  "user": {
+    "id": 1,
+    "name": "Alice Nguyen",
+    "email": "alice@example.com",
+    "avatarUrl": "https://example.com/a.png"
+  }
+}
+```
+
+### JSON Tests — Project
+
+Tạo mới project:
+```json
+POST /api/project/create
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "name": "Mini Jira Core",
+  "key": "mj",
+  "description": "Core services for mini jira"
+}
+```
+Phản hồi (201 Created) + Header `Location: /api/project/1`:
+```json
+{
+  "id": 1,
+  "name": "Mini Jira Core",
+  "key": "MJ",
+  "description": "Core services for mini jira",
+  "status": "PLANNING",
+  "createdAt": "2026-03-13T10:15:30",
+  "ownerId": 1,
+  "ownerName": "Alice Nguyen"
+}
+```
+
+Lấy chi tiết project:
+```json
+GET /api/project/1
+Authorization: Bearer <JWT>
+```
+Phản hồi (200 OK):
+```json
+{
+  "id": 1,
+  "name": "Mini Jira Core",
+  "key": "MJ",
+  "description": "Core services for mini jira",
+  "status": "PLANNING",
+  "createdAt": "2026-03-13T10:15:30",
+  "ownerId": 1,
+  "ownerName": "Alice Nguyen"
+}
+```
+
+Xóa project (chỉ owner):
+```json
+DELETE /api/project/delete/1
+Authorization: Bearer <JWT>
+```
+Phản hồi (204 No Content): không có body.
+
+### JSON Errors — ví dụ
+
+- 400 Bad Request (vi phạm validation: thiếu name/key,…)
+  (Trả mặc định bởi Spring Validation; ví dụ minh họa)
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Key không được để trống",
+  "path": "/api/project/create"
+}
+```
+
+- 409 Conflict (key đã tồn tại hoặc đang bị tham chiếu khi xóa)
+```json
+{
+  "error": "Key project đã tồn tại: MJ"
+}
+```
+
+- 403 Forbidden (không phải owner khi xóa)
+```json
+{
+  "error": "Bạn không có quyền xóa project này"
+}
+```
+
+- 404 Not Found (không tìm thấy project)
+```json
+{
+  "error": "Không tìm thấy project id=999"
+}
+```
+
+### Gợi ý dùng curl (tùy chọn)
+
+```bash
+# Đăng nhập
+curl -sS -X POST http://localhost:8080/api/auth/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"alice@example.com","password":"12345678"}'
+
+# Tạo project
+curl -sS -X POST http://localhost:8080/api/project/create \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"name":"Mini Jira Core","key":"mj","description":"Core services"}'
+
+# Lấy chi tiết
+curl -sS -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/1
+
+# Xóa project
+curl -sS -X DELETE -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/delete/1 -i
+```
