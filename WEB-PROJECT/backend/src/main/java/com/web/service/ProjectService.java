@@ -1,9 +1,13 @@
 ﻿package com.web.service;
 
+import com.web.dto.member.AddMemberRequest;
+import com.web.dto.member.MemberResponse;
 import com.web.dto.project.CreateProjectRequest;
 import com.web.dto.project.ProjectResponse;
 import com.web.entity.Project;
+import com.web.entity.ProjectMember;
 import com.web.entity.User;
+import com.web.repository.ProjectMemberRepository;
 import com.web.repository.ProjectRepository;
 import com.web.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +16,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -23,11 +29,14 @@ public class ProjectService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ProjectMemberRepository projectMemberRepository;
+
     public ProjectResponse createProject(CreateProjectRequest req, String ownerEmail) {
         String normalizedKey = req.getKey().trim().toUpperCase();
 
         if (projectRepository.existsByKey(normalizedKey)) {
-            throw new IllegalStateException("Key project đã tồn tại: " + normalizedKey);
+            throw new IllegalStateException("Key project đã tồn tai: " + normalizedKey);
         }
 
         User owner = userRepository.findByEmail(ownerEmail)
@@ -57,13 +66,69 @@ public class ProjectService {
 
         if (p.getOwner() == null || p.getOwner().getEmail() == null ||
                 !p.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
-            throw new AccessDeniedException("Bạn không có quyền xóa project này");
+            throw new AccessDeniedException("Bạn không được quyền xóa project này");
         }
         try {
             projectRepository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalStateException("Không thể xóa project đang được tham chiếu");
+            throw new IllegalStateException("Không thể xóa project dang duợc tham chiếu");
         }
+    }
+
+    public MemberResponse addMember(Integer projectId, AddMemberRequest req, String requesterEmail) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy project id=" + projectId));
+
+        if (project.getOwner() == null || project.getOwner().getEmail() == null ||
+                !project.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
+            throw new AccessDeniedException("Bạn không có quyền thêm thành viên vào project này");
+        }
+
+        String email = req.getEmail().trim();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy user với email: " + email));
+
+        if (projectMemberRepository.existsByProjectAndUser(project, user)) {
+            throw new IllegalStateException("Nguời dùng đã là thành viên của project");
+        }
+
+        ProjectMember pm = new ProjectMember();
+        pm.setProject(project);
+        pm.setUser(user);
+        String role = (req.getRole() == null || req.getRole().trim().isEmpty()) ? "MEMBER" : req.getRole().trim();
+        pm.setRole(role);
+        pm.setJoinedAt(LocalDateTime.now());
+
+        ProjectMember saved = projectMemberRepository.save(pm);
+        return toMemberResponse(saved);
+    }
+
+    public List<MemberResponse> listMembers(Integer projectId) {
+        // Ensure project exists
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy project id=" + projectId));
+
+        return projectMemberRepository.findByProjectId(projectId)
+                .stream()
+                .map(this::toMemberResponse)
+                .collect(Collectors.toList());
+    }
+
+    private MemberResponse toMemberResponse(ProjectMember pm) {
+        MemberResponse res = new MemberResponse();
+        res.setId(pm.getId());
+        if (pm.getProject() != null) {
+            res.setProjectId(pm.getProject().getId());
+        }
+        if (pm.getUser() != null) {
+            res.setUserId(pm.getUser().getId());
+            res.setUserName(pm.getUser().getName());
+            res.setUserEmail(pm.getUser().getEmail());
+        }
+        res.setRole(pm.getRole());
+        res.setJoinedAt(pm.getJoinedAt());
+        res.setLeftAt(pm.getLeftAt());
+        return res;
     }
 
     private ProjectResponse toResponse(Project p) {

@@ -325,3 +325,53 @@ curl -sS -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/1
 # Xóa project
 curl -sS -X DELETE -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/delete/1 -i
 ```
+- Project Members
+  - POST `/api/project/{id}/members` thêm member bằng email
+  - GET  `/api/project/{id}/members` lấy danh sách member của project
+
+### JSON Tests � Project Members
+
+Thêm member bằng email:
+```json
+POST /api/project/1/members
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "email": "bob@example.com",
+  "role": "MEMBER"
+}
+```
+Phản hồi (201 Created):
+```json
+{
+  "id": 10,
+  "projectId": 1,
+  "userId": 2,
+  "userName": "Bob Tran",
+  "userEmail": "bob@example.com",
+  "role": "MEMBER",
+  "joinedAt": "2026-03-13T10:25:00"
+}
+```
+
+Lấy danh sách member:
+```json
+GET /api/project/1/members
+Authorization: Bearer <JWT>
+```
+Ph?n h?i (200 OK):
+```json
+[
+  {
+    "id": 10,
+    "projectId": 1,
+    "userId": 2,
+    "userName": "Bob Tran",
+    "userEmail": "bob@example.com",
+    "role": "MEMBER",
+    "joinedAt": "2026-03-13T10:25:00",
+    "leftAt": null
+  }
+]
+```

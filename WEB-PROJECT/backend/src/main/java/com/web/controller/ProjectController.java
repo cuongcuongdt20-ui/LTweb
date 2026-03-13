@@ -3,6 +3,8 @@
 import com.web.dto.project.CreateProjectRequest;
 import com.web.dto.project.ProjectResponse;
 import com.web.service.ProjectService;
+import com.web.dto.member.AddMemberRequest;
+import com.web.dto.member.MemberResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,6 +19,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/project")
@@ -60,7 +63,7 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler({IllegalStateException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({ IllegalStateException.class, DataIntegrityViolationException.class })
     public ResponseEntity<?> handleConflict(RuntimeException ex) {
         Map<String, Object> err = new HashMap<>();
         err.put("error", ex.getMessage());
@@ -72,5 +75,26 @@ public class ProjectController {
         Map<String, Object> err = new HashMap<>();
         err.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+    }
+
+    // POST /api/project/{id}/members
+    @PostMapping("/{id}/members")
+    public ResponseEntity<?> addMember(@PathVariable Integer id,
+            @Valid @RequestBody AddMemberRequest request,
+            Authentication auth) {
+        MemberResponse created = projectService.addMember(id, request, auth.getName());
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("/api/project/{id}/members/{memberId}")
+                .buildAndExpand(id, created.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(created);
+    }
+
+    // GET /api/project/{id}/members
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<MemberResponse>> listMembers(@PathVariable Integer id) {
+        List<MemberResponse> members = projectService.listMembers(id);
+        return ResponseEntity.ok(members);
     }
 }
