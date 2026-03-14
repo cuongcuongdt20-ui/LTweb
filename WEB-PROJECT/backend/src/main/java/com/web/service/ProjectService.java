@@ -1,4 +1,4 @@
-Ôªøpackage com.web.service;
+package com.web.service;
 
 import com.web.dto.member.AddMemberRequest;
 import com.web.dto.member.MemberResponse;
@@ -36,11 +36,11 @@ public class ProjectService {
         String normalizedKey = req.getKey().trim().toUpperCase();
 
         if (projectRepository.existsByKey(normalizedKey)) {
-            throw new IllegalStateException("Key project ƒë√£ t·ªìn tai: " + normalizedKey);
+            throw new IllegalStateException("Key project d„ t?n tai: " + normalizedKey);
         }
 
         User owner = userRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new IllegalStateException("Kh√¥ng t√¨m th·∫•y user: " + ownerEmail));
+                .orElseThrow(() -> new IllegalStateException("KhÙng tÏm th?y user: " + ownerEmail));
 
         Project p = new Project();
         p.setName(req.getName().trim());
@@ -56,40 +56,40 @@ public class ProjectService {
 
     public ProjectResponse getById(Integer id) {
         Project p = projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Kh√¥ng t√¨m th·∫•y project id=" + id));
+                .orElseThrow(() -> new NoSuchElementException("KhÙng tÏm th?y project id=" + id));
         return toResponse(p);
     }
 
     public void deleteById(Integer id, String requesterEmail) {
         Project p = projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Kh√¥ng t√¨m th·∫•y project id=" + id));
+                .orElseThrow(() -> new NoSuchElementException("KhÙng tÏm th?y project id=" + id));
 
         if (p.getOwner() == null || p.getOwner().getEmail() == null ||
                 !p.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
-            throw new AccessDeniedException("B·∫°n kh√¥ng ƒë∆∞·ª£c quy·ªÅn x√≥a project n√†y");
+            throw new AccessDeniedException("B?n khÙng du?c quy?n xÛa project n‡y");
         }
         try {
             projectRepository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalStateException("Kh√¥ng th·ªÉ x√≥a project dang du·ª£c tham chi·∫øu");
+            throw new IllegalStateException("KhÙng th? xÛa project dang du?c tham chi?u");
         }
     }
 
     public MemberResponse addMember(Integer projectId, AddMemberRequest req, String requesterEmail) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Kh√¥ng t√¨m th·∫•y project id=" + projectId));
+                .orElseThrow(() -> new NoSuchElementException("KhÙng tÏm th?y project id=" + projectId));
 
         if (project.getOwner() == null || project.getOwner().getEmail() == null ||
                 !project.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
-            throw new AccessDeniedException("B·∫°n kh√¥ng c√≥ quy·ªÅn th√™m th√†nh vi√™n v√†o project n√†y");
+            throw new AccessDeniedException("B?n khÙng cÛ quy?n thÍm th‡nh viÍn v‡o project n‡y");
         }
 
         String email = req.getEmail().trim();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Kh√¥ng t√¨m th·∫•y user v·ªõi email: " + email));
+                .orElseThrow(() -> new NoSuchElementException("KhÙng tÏm th?y user v?i email: " + email));
 
         if (projectMemberRepository.existsByProjectAndUser(project, user)) {
-            throw new IllegalStateException("Ngu·ªùi d√πng ƒë√£ l√† th√†nh vi√™n c·ªßa project");
+            throw new IllegalStateException("Ngu?i d˘ng d„ l‡ th‡nh viÍn c?a project");
         }
 
         ProjectMember pm = new ProjectMember();
@@ -106,7 +106,7 @@ public class ProjectService {
     public List<MemberResponse> listMembers(Integer projectId) {
         // Ensure project exists
         projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Kh√¥ng t√¨m th·∫•y project id=" + projectId));
+                .orElseThrow(() -> new NoSuchElementException("KhÙng tÏm th?y project id=" + projectId));
 
         return projectMemberRepository.findByProjectId(projectId)
                 .stream()
@@ -131,7 +131,28 @@ public class ProjectService {
         return res;
     }
 
-    private ProjectResponse toResponse(Project p) {
+    
+    public java.util.List<ProjectResponse> listMyProjects(String requesterEmail) {
+        User user = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new IllegalStateException("KhÙng tÏm th?y user: " + requesterEmail));
+        java.util.List<Project> projects = projectRepository.findAllInvolvedByUserId(user.getId());
+                return projects.stream().map(p -> {
+            ProjectResponse res = toResponse(p);
+            String role = null;
+            if (p.getOwner() != null && p.getOwner().getId() != null && p.getOwner().getId().equals(user.getId())) {
+                role = "MANAGER";
+            } else {
+                java.util.Optional<ProjectMember> pmOpt = projectMemberRepository.findByProjectIdAndUserId(p.getId(), user.getId());
+                if (pmOpt.isPresent() && pmOpt.get().getLeftAt() == null) {
+                    String r = pmOpt.get().getRole();
+                    role = (r == null || r.trim().isEmpty()) ? "MEMBER" : r.trim();
+                }
+            }
+            if (role == null) role = "MEMBER";
+            res.setRole(role);
+            return res;
+        }).collect(java.util.stream.Collectors.toList());
+    }private ProjectResponse toResponse(Project p) {
         ProjectResponse res = new ProjectResponse();
         res.setId(p.getId());
         res.setName(p.getName());

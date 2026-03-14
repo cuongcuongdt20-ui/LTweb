@@ -1,4 +1,4 @@
-﻿package com.web.dto.project;
+package com.web.dto.project;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +11,7 @@ public class ProjectResponse {
     private LocalDateTime createdAt;
     private Long ownerId;
     private String ownerName;
+    private String role;
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -35,4 +36,7 @@ public class ProjectResponse {
 
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

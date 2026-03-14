@@ -1,4 +1,4 @@
-﻿package com.web.controller;
+package com.web.controller;
 
 import com.web.dto.project.CreateProjectRequest;
 import com.web.dto.project.ProjectResponse;
@@ -40,6 +40,13 @@ public class ProjectController {
                 .buildAndExpand(created.getId())
                 .toUri();
         return ResponseEntity.created(location).body(created);
+    }
+
+    // GET /api/project/my
+    @GetMapping("/my")
+    public ResponseEntity<List<ProjectResponse>> listMyProjects(Authentication auth) {
+        List<ProjectResponse> projects = projectService.listMyProjects(auth.getName());
+        return ResponseEntity.ok(projects);
     }
 
     // GET /api/project/{id}
