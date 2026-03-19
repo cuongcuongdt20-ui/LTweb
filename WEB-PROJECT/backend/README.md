@@ -1,78 +1,16 @@
-# 🚀 Hướng Dẫn Cấu Hình & Chạy Project
+# MiniJira Backend
 
-## 📌 1. Yêu cầu môi trường
+## Requirements
 
-* **JDK 17** (Bắt buộc)
-* Maven
-* MySQL Server
-* IDE: IntelliJ / VSCode / Eclipse (tùy chọn)
+- JDK 17
+- Maven
+- MySQL
 
----
+## Configuration
 
-## ☕ 2. Cấu hình JDK 17
+Update database config in `src/main/resources/application.properties`.
 
-Project được build với **JDK 17**.
-
-Nếu máy bạn đang dùng JDK khác, hãy chỉnh lại trong file:
-
-```
-pom.xml
-```
-
-Tìm đoạn:
-
-```xml
-<properties>
-    <java.version>17</java.version>
-</properties>
-```
-
-Hoặc:
-
-```xml
-<maven.compiler.source>17</maven.compiler.source>
-<maven.compiler.target>17</maven.compiler.target>
-```
-
-👉 Đảm bảo giá trị là **17**
-
-Sau đó kiểm tra lại bằng lệnh:
-
-```bash
-java -version
-```
-
----
-
-## 🧹 3. Xóa cấu hình riêng của VSCode (nếu có)
-
-Để project phù hợp với từng máy:
-
-* Xóa thư mục:
-
-```
-.vscode
-```
-
-Thư mục này chứa cấu hình riêng của từng môi trường nên không nên dùng chung.
-
----
-
-## 🗄 4. Cấu hình kết nối MySQL
-
-Mở file:
-
-```
-src/main/resources/application.properties
-```
-
-Hoặc:
-
-```
-application.yml
-```
-
-### Ví dụ cấu hình:
+Example:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/ten_database
@@ -84,99 +22,85 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 ```
 
-### ⚠️ Lưu ý:
-
-* Thay `ten_database` bằng tên database trong máy bạn
-* Thay `username` và `password` đúng với MySQL của bạn
-
----
-
-## 🏗 5. Tạo Database (nếu chưa có)
-
-Vào MySQL và chạy:
+Create database if needed:
 
 ```sql
 CREATE DATABASE ten_database;
 ```
 
----
-
-## ▶ 6. Chạy Project
-
-Dùng Maven:
+## Run
 
 ```bash
 mvn clean install
 mvn spring-boot:run
 ```
 
-Hoặc chạy trực tiếp từ IDE.
+Default server:
 
-Nếu thành công, server sẽ chạy tại:
-
-```
+```text
 http://localhost:8080
 ```
 
----
-
-## ❗ Các lỗi thường gặp
-
-### 🔴 Port 8080 đã được sử dụng
-
-* Tắt ứng dụng đang dùng port 8080
-  hoặc
-* Đổi port trong `application.properties`:
+If port `8080` is busy, change:
 
 ```properties
 server.port=8081
 ```
 
----
+## Main Structure
 
-## 📂 Cấu trúc thư mục chính
-
-```
+```text
 src
- ├── main
- │   ├── java
- │   └── resources
- │       └── application.properties
- └── test
+ |- main
+ |  |- java
+ |  `- resources
+ |     `- application.properties
+ `- test
 ```
 
----
+## API
 
-## ✅ Tóm tắt các bước cần làm khi clone project
+Note: except `/api/auth/**`, all endpoints require:
 
-1. Cài JDK 17
-2. Sửa lại `pom.xml` nếu cần
-3. Xóa thư mục `.vscode`
-4. Cấu hình lại MySQL trong `application`
-5. Tạo database
-6. Chạy project
+```http
+Authorization: Bearer <JWT>
+```
 
----
+### Auth
 
-# 🎉 Chúc bạn chạy project thành công!
+- `POST /api/auth/signup` - register user
+- `POST /api/auth/signin` - sign in and return JWT
 
----
+### Project
 
-## API Endpoints (REST)
+- `POST /api/project/create` - create project
+- `GET /api/project/my` - list projects where current user is involved
+- `GET /api/project/{id}` - get project detail
+- `DELETE /api/project/delete/{id}` - delete project, owner only
 
-Lưu ý: Trừ các route `/api/auth/**`, mọi endpoint đều yêu cầu header `Authorization: Bearer <JWT>`.
+### Project Members
 
-- Auth
-  - POST `/api/auth/signup` — đăng ký tài khoản
-  - POST `/api/auth/signin` — đăng nhập, trả JWT
-- Project
-  - POST `/api/project/create` — tạo project mới (201 Created + Location)
-  - GET  `/api/project/{id}` — lấy chi tiết project
-  - DELETE `/api/project/delete/{id}` — xóa project (chỉ owner)
+- `POST /api/project/{id}/members` - add member by email, owner only
+- `GET /api/project/{id}/members` - list project members
 
-### JSON Tests — Auth
+### Task
 
-Đăng ký:
+- `POST /api/project/{projectId}/tasks` - create task, owner only
+- `GET /api/project/{projectId}/tasks/my` - list tasks assigned to current user in that project
+- `PATCH /api/project/{projectId}/tasks/{taskId}/status` - update task status, assignee only
+- `GET /api/project/{projectId}/tasks/{taskId}/history` - list task status history, project owner or task assignee only
+- `DELETE /api/project/{projectId}/tasks/{taskId}` - delete task, owner only
+
+### Comment
+
+- `GET /api/project/{projectId}/tasks/{taskId}/comments` - list comments, project owner or task assignee only
+- `POST /api/project/{projectId}/tasks/{taskId}/comments` - create comment, project owner or task assignee only
+- `DELETE /api/project/{projectId}/tasks/{taskId}/comments/{commentId}` - delete comment, project owner or task assignee only
+
+## Request And Response Samples
+
+### Sign Up
+
 ```json
 POST /api/auth/signup
 Content-Type: application/json
@@ -188,12 +112,15 @@ Content-Type: application/json
   "avatarUrl": "https://example.com/a.png"
 }
 ```
-Phản hồi (200 OK):
+
+Response:
+
 ```json
-"Đăng ký thành công!"
+"Dang ky thanh cong!"
 ```
 
-Đăng nhập:
+### Sign In
+
 ```json
 POST /api/auth/signin
 Content-Type: application/json
@@ -203,7 +130,9 @@ Content-Type: application/json
   "password": "12345678"
 }
 ```
-Phản hồi (200 OK):
+
+Response:
+
 ```json
 {
   "token": "<JWT>",
@@ -217,9 +146,8 @@ Phản hồi (200 OK):
 }
 ```
 
-### JSON Tests — Project
+### Create Project
 
-Tạo mới project:
 ```json
 POST /api/project/create
 Authorization: Bearer <JWT>
@@ -231,7 +159,9 @@ Content-Type: application/json
   "description": "Core services for mini jira"
 }
 ```
-Phản hồi (201 Created) + Header `Location: /api/project/1`:
+
+Response:
+
 ```json
 {
   "id": 1,
@@ -245,12 +175,40 @@ Phản hồi (201 Created) + Header `Location: /api/project/1`:
 }
 ```
 
-Lấy chi tiết project:
+### List My Projects
+
+```json
+GET /api/project/my
+Authorization: Bearer <JWT>
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Mini Jira Core",
+    "key": "MJ",
+    "description": "Core services for mini jira",
+    "status": "PLANNING",
+    "createdAt": "2026-03-13T10:15:30",
+    "ownerId": 1,
+    "ownerName": "Alice Nguyen",
+    "role": "MANAGER"
+  }
+]
+```
+
+### Get Project Detail
+
 ```json
 GET /api/project/1
 Authorization: Bearer <JWT>
 ```
-Phản hồi (200 OK):
+
+Response:
+
 ```json
 {
   "id": 1,
@@ -264,74 +222,8 @@ Phản hồi (200 OK):
 }
 ```
 
-Xóa project (chỉ owner):
-```json
-DELETE /api/project/delete/1
-Authorization: Bearer <JWT>
-```
-Phản hồi (204 No Content): không có body.
+### Add Member
 
-### JSON Errors — ví dụ
-
-- 400 Bad Request (vi phạm validation: thiếu name/key,…)
-  (Trả mặc định bởi Spring Validation; ví dụ minh họa)
-```json
-{
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Key không được để trống",
-  "path": "/api/project/create"
-}
-```
-
-- 409 Conflict (key đã tồn tại hoặc đang bị tham chiếu khi xóa)
-```json
-{
-  "error": "Key project đã tồn tại: MJ"
-}
-```
-
-- 403 Forbidden (không phải owner khi xóa)
-```json
-{
-  "error": "Bạn không có quyền xóa project này"
-}
-```
-
-- 404 Not Found (không tìm thấy project)
-```json
-{
-  "error": "Không tìm thấy project id=999"
-}
-```
-
-### Gợi ý dùng curl (tùy chọn)
-
-```bash
-# Đăng nhập
-curl -sS -X POST http://localhost:8080/api/auth/signin \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"alice@example.com","password":"12345678"}'
-
-# Tạo project
-curl -sS -X POST http://localhost:8080/api/project/create \
-  -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"name":"Mini Jira Core","key":"mj","description":"Core services"}'
-
-# Lấy chi tiết
-curl -sS -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/1
-
-# Xóa project
-curl -sS -X DELETE -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/project/delete/1 -i
-```
-- Project Members
-  - POST `/api/project/{id}/members` thêm member bằng email
-  - GET  `/api/project/{id}/members` lấy danh sách member của project
-
-### JSON Tests � Project Members
-
-Thêm member bằng email:
 ```json
 POST /api/project/1/members
 Authorization: Bearer <JWT>
@@ -342,7 +234,9 @@ Content-Type: application/json
   "role": "MEMBER"
 }
 ```
-Phản hồi (201 Created):
+
+Response:
+
 ```json
 {
   "id": 10,
@@ -351,16 +245,20 @@ Phản hồi (201 Created):
   "userName": "Bob Tran",
   "userEmail": "bob@example.com",
   "role": "MEMBER",
-  "joinedAt": "2026-03-13T10:25:00"
+  "joinedAt": "2026-03-13T10:25:00",
+  "leftAt": null
 }
 ```
 
-Lấy danh sách member:
+### List Members
+
 ```json
 GET /api/project/1/members
 Authorization: Bearer <JWT>
 ```
-Ph?n h?i (200 OK):
+
+Response:
+
 ```json
 [
   {
@@ -375,3 +273,398 @@ Ph?n h?i (200 OK):
   }
 ]
 ```
+
+### Create Task
+
+```json
+POST /api/project/1/tasks
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "title": "Fix login bug",
+  "description": "Redirect loop after signin",
+  "assigneeEmail": "bob@example.com",
+  "priority": "HIGH",
+  "estimatedHours": 6,
+  "dueDate": "2026-03-20T18:00:00"
+}
+```
+
+Response:
+
+```json
+{
+  "id": 5,
+  "projectId": 1,
+  "title": "Fix login bug",
+  "description": "Redirect loop after signin",
+  "status": null,
+  "priority": "HIGH",
+  "progress": null,
+  "estimatedHours": 6.0,
+  "actualHours": null,
+  "startedAt": null,
+  "completedAt": null,
+  "dueDate": "2026-03-20T18:00:00",
+  "createdAt": "2026-03-19T09:00:00",
+  "updatedAt": "2026-03-19T09:00:00",
+  "assigneeId": 2,
+  "assigneeName": "Bob Tran",
+  "assigneeEmail": "bob@example.com",
+  "reporterId": 1,
+  "reporterName": "Alice Nguyen"
+}
+```
+
+### List My Tasks
+
+```json
+GET /api/project/1/tasks/my
+Authorization: Bearer <JWT>
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 5,
+    "projectId": 1,
+    "title": "Fix login bug",
+    "description": "Redirect loop after signin",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "progress": null,
+    "estimatedHours": 6.0,
+    "actualHours": null,
+    "startedAt": "2026-03-19T09:05:00",
+    "completedAt": null,
+    "dueDate": "2026-03-20T18:00:00",
+    "createdAt": "2026-03-19T09:00:00",
+    "updatedAt": "2026-03-19T09:05:00",
+    "assigneeId": 2,
+    "assigneeName": "Bob Tran",
+    "assigneeEmail": "bob@example.com",
+    "reporterId": 1,
+    "reporterName": "Alice Nguyen"
+  }
+]
+```
+
+### Update Task Status
+
+```json
+PATCH /api/project/1/tasks/5/status
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+```
+
+Response:
+
+```json
+{
+  "id": 5,
+  "projectId": 1,
+  "title": "Fix login bug",
+  "description": "Redirect loop after signin",
+  "status": "DONE",
+  "priority": "HIGH",
+  "progress": null,
+  "estimatedHours": 6.0,
+  "actualHours": null,
+  "startedAt": "2026-03-19T09:05:00",
+  "completedAt": "2026-03-19T10:00:00",
+  "dueDate": "2026-03-20T18:00:00",
+  "createdAt": "2026-03-19T09:00:00",
+  "updatedAt": "2026-03-19T10:00:00",
+  "assigneeId": 2,
+  "assigneeName": "Bob Tran",
+  "assigneeEmail": "bob@example.com",
+  "reporterId": 1,
+  "reporterName": "Alice Nguyen"
+}
+```
+
+Note:
+
+- When task status actually changes, the backend automatically creates a `task_history` record.
+- History stores `oldStatus`, `newStatus`, `progressAtThatTime`, `changedAt`, and the user who made the change.
+
+### Get Task History
+
+```json
+GET /api/project/1/tasks/5/history
+Authorization: Bearer <JWT>
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 21,
+    "taskId": 5,
+    "projectId": 1,
+    "oldStatus": "IN_PROGRESS",
+    "newStatus": "DONE",
+    "progressAtThatTime": 0,
+    "changedAt": "2026-03-19T10:00:00",
+    "userId": 2,
+    "userName": "Bob Tran",
+    "userEmail": "bob@example.com"
+  },
+  {
+    "id": 20,
+    "taskId": 5,
+    "projectId": 1,
+    "oldStatus": "TODO",
+    "newStatus": "IN_PROGRESS",
+    "progressAtThatTime": 0,
+    "changedAt": "2026-03-19T09:05:00",
+    "userId": 2,
+    "userName": "Bob Tran",
+    "userEmail": "bob@example.com"
+  }
+]
+```
+
+### Delete Endpoints
+
+- `DELETE /api/project/delete/{id}` -> `204 No Content`
+- `DELETE /api/project/{projectId}/tasks/{taskId}` -> `204 No Content`
+- `DELETE /api/project/{projectId}/tasks/{taskId}/comments/{commentId}` -> `204 No Content`
+
+### Comment APIs
+
+#### 1. Get Comments
+
+Use this endpoint to get all comments of a task.
+
+- Method: `GET`
+- URL: `/api/project/{projectId}/tasks/{taskId}/comments`
+- Authorization: `Bearer <JWT>`
+- Permission: project owner or task assignee
+- Order: oldest comment first by `createdAt`
+
+Example request:
+
+```json
+GET /api/project/1/tasks/5/comments
+Authorization: Bearer <JWT>
+```
+
+Success response: `200 OK`
+
+```json
+[
+  {
+    "id": 11,
+    "taskId": 5,
+    "projectId": 1,
+    "content": "I am checking the login flow now.",
+    "createdAt": "2026-03-19T09:40:00",
+    "userId": 2,
+    "userName": "Bob Tran",
+    "userEmail": "bob@example.com"
+  },
+  {
+    "id": 12,
+    "taskId": 5,
+    "projectId": 1,
+    "content": "Please update the redirect handling for expired token.",
+    "createdAt": "2026-03-19T10:10:00",
+    "userId": 1,
+    "userName": "Alice Nguyen",
+    "userEmail": "alice@example.com"
+  }
+]
+```
+
+Possible errors:
+
+- `401 Unauthorized` - missing or invalid JWT
+- `403 Forbidden` - current user is not project owner and not task assignee
+- `404 Not Found` - task does not exist in the project
+
+Error example:
+
+```json
+{
+  "error": "Ban khong co quyen xem comment trong task nay"
+}
+```
+
+#### 2. Create Comment
+
+Use this endpoint to add a comment to a task.
+
+- Method: `POST`
+- URL: `/api/project/{projectId}/tasks/{taskId}/comments`
+- Authorization: `Bearer <JWT>`
+- Permission: project owner or task assignee
+
+Request body:
+
+```json
+{
+  "content": "Please update the redirect handling for expired token."
+}
+```
+
+Validation:
+
+- `content` is required
+- `content` must not be blank
+- `content` maximum length is `5000` characters
+
+Example request:
+
+```json
+POST /api/project/1/tasks/5/comments
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "content": "Please update the redirect handling for expired token."
+}
+```
+
+Success response: `201 Created`
+
+```json
+{
+  "id": 12,
+  "taskId": 5,
+  "projectId": 1,
+  "content": "Please update the redirect handling for expired token.",
+  "createdAt": "2026-03-19T10:10:00",
+  "userId": 1,
+  "userName": "Alice Nguyen",
+  "userEmail": "alice@example.com"
+}
+```
+
+Possible errors:
+
+- `400 Bad Request` - `content` is blank or longer than `5000` characters
+- `401 Unauthorized` - missing or invalid JWT
+- `403 Forbidden` - current user is not project owner and not task assignee
+- `404 Not Found` - task does not exist in the project
+
+Error example:
+
+```json
+{
+  "error": "Ban khong co quyen comment trong task nay"
+}
+```
+
+#### 3. Delete Comment
+
+Use this endpoint to delete a comment from a task.
+
+- Method: `DELETE`
+- URL: `/api/project/{projectId}/tasks/{taskId}/comments/{commentId}`
+- Authorization: `Bearer <JWT>`
+- Permission: project owner or task assignee
+
+Example request:
+
+```json
+DELETE /api/project/1/tasks/5/comments/12
+Authorization: Bearer <JWT>
+```
+
+Success response: `204 No Content`
+
+Possible errors:
+
+- `401 Unauthorized` - missing or invalid JWT
+- `403 Forbidden` - current user is not project owner and not task assignee
+- `404 Not Found` - task or comment does not exist
+
+Error example:
+
+```json
+{
+  "error": "Khong tim thay comment id=12"
+}
+```
+
+## Common Errors
+
+- `400 Bad Request` - validation failed
+- `401 Unauthorized` - signin failed, missing JWT, or invalid JWT
+- `403 Forbidden` - permission denied
+- `404 Not Found` - project, user, or task not found
+- `409 Conflict` - duplicate key, invalid state, or referenced record
+
+Example:
+
+```json
+{
+  "error": "Nguoi duoc giao khong la thanh vien cua project"
+}
+```
+
+## curl Examples
+
+```bash
+# Sign in
+curl -sS -X POST http://localhost:8080/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"alice@example.com\",\"password\":\"12345678\"}"
+
+# Create project
+curl -sS -X POST http://localhost:8080/api/project/create \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{\"name\":\"Mini Jira Core\",\"key\":\"mj\",\"description\":\"Core services\"}"
+
+# List my projects
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/project/my
+
+# Add member
+curl -sS -X POST http://localhost:8080/api/project/1/members \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{\"email\":\"bob@example.com\",\"role\":\"MEMBER\"}"
+
+# Create task
+curl -sS -X POST http://localhost:8080/api/project/1/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{\"title\":\"Fix login bug\",\"description\":\"Redirect loop after signin\",\"assigneeEmail\":\"bob@example.com\",\"priority\":\"HIGH\",\"estimatedHours\":6,\"dueDate\":\"2026-03-20T18:00:00\"}"
+
+# Update task status
+curl -sS -X PATCH http://localhost:8080/api/project/1/tasks/5/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{\"status\":\"DONE\"}"
+
+# Get task history
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/project/1/tasks/5/history
+
+# Create comment
+curl -sS -X POST http://localhost:8080/api/project/1/tasks/5/comments \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{\"content\":\"Please update the redirect handling for expired token.\"}"
+
+# Get comments
+curl -sS -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/project/1/tasks/5/comments
+
+# Delete comment
+curl -sS -X DELETE http://localhost:8080/api/project/1/tasks/5/comments/12 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+

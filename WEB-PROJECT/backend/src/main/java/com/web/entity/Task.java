@@ -1,4 +1,4 @@
-﻿package com.web.entity;
+package com.web.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -44,9 +44,9 @@ public class Task {
 
     private LocalDateTime updatedAt;
 
-    // Quan hệ
+    // Quan h?
     @ManyToOne
-    @JoinColumn(name = "projectId", nullable = false)
+    @JoinColumn(name = "projectId")
     private Project project;
 
     @ManyToOne

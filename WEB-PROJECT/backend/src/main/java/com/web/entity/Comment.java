@@ -1,4 +1,4 @@
-﻿package com.web.entity;
+package com.web.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ public class Comment {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn(name = "taskId", nullable = false)
+    @JoinColumn(name = "taskId")
     private Task task;
 
     @ManyToOne

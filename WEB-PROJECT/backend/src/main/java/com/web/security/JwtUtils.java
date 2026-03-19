@@ -14,9 +14,9 @@ import java.util.Date;
  * JwtUtils — "Xưởng làm thẻ ra vào"
  *
  * Class này làm 3 việc:
- *   1. generateToken()  → Tạo thẻ mới khi user đăng nhập thành công
- *   2. getUsernameFrom() → Đọc tên user từ thẻ
- *   3. validateToken()  → Kiểm tra thẻ có hợp lệ và còn hạn không
+ * 1. generateToken() → Tạo thẻ mới khi user đăng nhập thành công
+ * 2. getUsernameFrom() → Đọc tên user từ thẻ
+ * 3. validateToken() → Kiểm tra thẻ có hợp lệ và còn hạn không
  */
 @Component
 public class JwtUtils {
@@ -36,8 +36,8 @@ public class JwtUtils {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())       // Ghi tên user vào token
-                .setIssuedAt(new Date())                        // Thời điểm tạo
+                .setSubject(userPrincipal.getUsername()) // Ghi tên user vào token
+                .setIssuedAt(new Date()) // Thời điểm tạo
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs)) // Hết hạn
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256) // Ký bằng key bí mật
                 .compact();
@@ -57,15 +57,15 @@ public class JwtUtils {
 
     /**
      * Kiểm tra token có hợp lệ không
-     * Trả về true  → Token OK, cho qua
+     * Trả về true → Token OK, cho qua
      * Trả về false → Token lỗi/hết hạn, chặn lại
      */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token);
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (SecurityException e) {
             System.err.println("JWT signature không hợp lệ: " + e.getMessage());

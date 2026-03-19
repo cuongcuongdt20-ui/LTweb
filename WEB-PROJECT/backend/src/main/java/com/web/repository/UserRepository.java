@@ -12,11 +12,11 @@ import java.util.Optional;
  * Chỉ cần khai báo interface, Spring Data JPA tự tạo code SQL!
  *
  * JpaRepository<User, Long> cung cấp sẵn:
- *   - save(user)        → INSERT hoặc UPDATE
- *   - findById(id)      → SELECT WHERE id = ?
- *   - findAll()         → SELECT * FROM users
- *   - deleteById(id)    → DELETE WHERE id = ?
- *   - count()           → SELECT COUNT(*)
+ * - save(user) → INSERT hoặc UPDATE
+ * - findById(id) → SELECT WHERE id = ?
+ * - findAll() → SELECT * FROM users
+ * - deleteById(id) → DELETE WHERE id = ?
+ * - count() → SELECT COUNT(*)
  *
  * Ta chỉ cần thêm các method tìm kiếm đặc biệt:
  */

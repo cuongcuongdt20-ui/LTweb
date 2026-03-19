@@ -21,22 +21,22 @@ import java.io.IOException;
  *
  * Flow hoạt động (chạy mỗi khi có HTTP request đến):
  *
- *   Request đến
- *      │
- *      ▼
- *   Đọc header "Authorization: Bearer <token>"
- *      │
- *      ▼
- *   Có token? ──No──► Bỏ qua, Spring Security sẽ chặn nếu API cần auth
- *      │Yes
- *      ▼
- *   Token hợp lệ? ──No──► Bỏ qua (Spring Security sẽ trả 401)
- *      │Yes
- *      ▼
- *   Lấy username → Load UserDetails → Đặt vào SecurityContext
- *      │
- *      ▼
- *   Cho request đi tiếp vào Controller
+ * Request đến
+ * │
+ * ▼
+ * Đọc header "Authorization: Bearer <token>"
+ * │
+ * ▼
+ * Có token? ──No──► Bỏ qua, Spring Security sẽ chặn nếu API cần auth
+ * │Yes
+ * ▼
+ * Token hợp lệ? ──No──► Bỏ qua (Spring Security sẽ trả 401)
+ * │Yes
+ * ▼
+ * Lấy username → Load UserDetails → Đặt vào SecurityContext
+ * │
+ * ▼
+ * Cho request đi tiếp vào Controller
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -49,8 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         try {
@@ -68,15 +68,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Bước 5: Tạo đối tượng xác thực và đặt vào SecurityContext
                 // → Từ đây, Spring Security biết "request này của ai"
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
                 authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                        new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {

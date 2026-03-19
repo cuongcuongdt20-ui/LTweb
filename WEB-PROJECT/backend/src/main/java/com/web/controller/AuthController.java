@@ -59,9 +59,7 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(),
-                            loginRequest.getPassword()
-                    )
-            );
+                            loginRequest.getPassword()));
 
             // Tạo JWT từ thông tin đã xác thực
             String token = jwtUtils.generateToken(authentication);

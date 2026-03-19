@@ -9,11 +9,13 @@ import com.web.entity.ProjectMember;
 import com.web.entity.User;
 import com.web.repository.ProjectMemberRepository;
 import com.web.repository.ProjectRepository;
+import com.web.repository.TaskRepository;
 import com.web.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +33,9 @@ public class ProjectService {
 
     @Autowired
     private ProjectMemberRepository projectMemberRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     public ProjectResponse createProject(CreateProjectRequest req, String ownerEmail) {
         String normalizedKey = req.getKey().trim().toUpperCase();
@@ -60,6 +65,7 @@ public class ProjectService {
         return toResponse(p);
     }
 
+    @Transactional
     public void deleteById(Integer id, String requesterEmail) {
         Project p = projectRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Không tìm th?y project id=" + id));
@@ -69,7 +75,9 @@ public class ProjectService {
             throw new AccessDeniedException("B?n không du?c quy?n xóa project này");
         }
         try {
-            projectRepository.deleteById(id);
+            taskRepository.clearProjectByProjectId(id);
+            projectMemberRepository.clearProjectByProjectId(id);
+            projectRepository.delete(p);
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalStateException("Không th? xóa project dang du?c tham chi?u");
         }
@@ -131,28 +139,31 @@ public class ProjectService {
         return res;
     }
 
-    
     public java.util.List<ProjectResponse> listMyProjects(String requesterEmail) {
         User user = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalStateException("Không tìm th?y user: " + requesterEmail));
         java.util.List<Project> projects = projectRepository.findAllInvolvedByUserId(user.getId());
-                return projects.stream().map(p -> {
+        return projects.stream().map(p -> {
             ProjectResponse res = toResponse(p);
             String role = null;
             if (p.getOwner() != null && p.getOwner().getId() != null && p.getOwner().getId().equals(user.getId())) {
                 role = "MANAGER";
             } else {
-                java.util.Optional<ProjectMember> pmOpt = projectMemberRepository.findByProjectIdAndUserId(p.getId(), user.getId());
+                java.util.Optional<ProjectMember> pmOpt = projectMemberRepository.findByProjectIdAndUserId(p.getId(),
+                        user.getId());
                 if (pmOpt.isPresent() && pmOpt.get().getLeftAt() == null) {
                     String r = pmOpt.get().getRole();
                     role = (r == null || r.trim().isEmpty()) ? "MEMBER" : r.trim();
                 }
             }
-            if (role == null) role = "MEMBER";
+            if (role == null)
+                role = "MEMBER";
             res.setRole(role);
             return res;
         }).collect(java.util.stream.Collectors.toList());
-    }private ProjectResponse toResponse(Project p) {
+    }
+
+    private ProjectResponse toResponse(Project p) {
         ProjectResponse res = new ProjectResponse();
         res.setId(p.getId());
         res.setName(p.getName());

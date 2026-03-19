@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
- 
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -46,6 +46,7 @@ public class User {
                 + avatarUrl + ", createdAt=" + createdAt + ", ownedProjects=" + ownedProjects + ", assignedTasks="
                 + assignedTasks + ", reportedTasks=" + reportedTasks + "]";
     }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

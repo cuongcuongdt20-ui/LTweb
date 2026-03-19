@@ -1,4 +1,4 @@
-﻿package com.web.entity;
+package com.web.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class ProjectMember {
     private LocalDateTime leftAt;
 
     @ManyToOne
-    @JoinColumn(name = "projectId", nullable = false)
+    @JoinColumn(name = "projectId")
     private Project project;
 
     @ManyToOne

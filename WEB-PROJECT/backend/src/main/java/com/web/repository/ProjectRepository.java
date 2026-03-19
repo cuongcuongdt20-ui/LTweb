@@ -12,15 +12,17 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
     boolean existsByKey(String key);
+
     Optional<Project> findByKey(String key);
 
     /**
-     * Returns projects where the given user is the owner OR an active member (leftAt is null).
+     * Returns projects where the given user is the owner OR an active member
+     * (leftAt is null).
      * Ordered by createdAt DESC.
      */
     @Query("SELECT DISTINCT p FROM Project p " +
-           "LEFT JOIN com.web.entity.ProjectMember pm ON pm.project = p " +
-           "WHERE p.owner.id = :userId OR (pm.user.id = :userId AND pm.leftAt IS NULL) " +
-           "ORDER BY p.createdAt DESC")
+            "LEFT JOIN com.web.entity.ProjectMember pm ON pm.project = p " +
+            "WHERE p.owner.id = :userId OR (pm.user.id = :userId AND pm.leftAt IS NULL) " +
+            "ORDER BY p.createdAt DESC")
     List<Project> findAllInvolvedByUserId(@Param("userId") Long userId);
 }
