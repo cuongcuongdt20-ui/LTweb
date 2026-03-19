@@ -612,59 +612,5 @@ Example:
 }
 ```
 
-## curl Examples
-
-```bash
-# Sign in
-curl -sS -X POST http://localhost:8080/api/auth/signin \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"alice@example.com\",\"password\":\"12345678\"}"
-
-# Create project
-curl -sS -X POST http://localhost:8080/api/project/create \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"name\":\"Mini Jira Core\",\"key\":\"mj\",\"description\":\"Core services\"}"
-
-# List my projects
-curl -sS -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/api/project/my
-
-# Add member
-curl -sS -X POST http://localhost:8080/api/project/1/members \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"email\":\"bob@example.com\",\"role\":\"MEMBER\"}"
-
-# Create task
-curl -sS -X POST http://localhost:8080/api/project/1/tasks \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"title\":\"Fix login bug\",\"description\":\"Redirect loop after signin\",\"assigneeEmail\":\"bob@example.com\",\"priority\":\"HIGH\",\"estimatedHours\":6,\"dueDate\":\"2026-03-20T18:00:00\"}"
-
-# Update task status
-curl -sS -X PATCH http://localhost:8080/api/project/1/tasks/5/status \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"status\":\"DONE\"}"
-
-# Get task history
-curl -sS -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/api/project/1/tasks/5/history
-
-# Create comment
-curl -sS -X POST http://localhost:8080/api/project/1/tasks/5/comments \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d "{\"content\":\"Please update the redirect handling for expired token.\"}"
-
-# Get comments
-curl -sS -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/api/project/1/tasks/5/comments
-
-# Delete comment
-curl -sS -X DELETE http://localhost:8080/api/project/1/tasks/5/comments/12 \
-  -H "Authorization: Bearer $TOKEN"
-```
 
 
