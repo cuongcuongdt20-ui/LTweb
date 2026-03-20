@@ -1,4 +1,4 @@
-﻿package com.web.entity;
+package com.web.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

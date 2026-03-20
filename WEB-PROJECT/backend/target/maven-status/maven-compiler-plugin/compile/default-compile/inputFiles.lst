@@ -1,4 +1,5 @@
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\service\ProjectService.java
+D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\project\UpdateProjectRequest.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\WebApplication.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\security\UserDetailsServiceImpl.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\repository\ProjectRepository.java
@@ -18,11 +19,13 @@ D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\service\C
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\member\MemberResponse.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\repository\ProjectMemberRepository.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\project\CreateProjectRequest.java
+D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\repository\TaskHistoryRepository.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\entity\Project.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\entity\Task.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\service\TaskService.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\task\TaskResponse.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\comment\CommentResponse.java
+D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\task\TaskHistoryResponse.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\project\ProjectResponse.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\dto\task\UpdateTaskStatusRequest.java
 D:\DEV\BTLWEB\mINIJIRA\LTweb\WEB-PROJECT\backend\src\main\java\com\web\config\SecurityConfig.java

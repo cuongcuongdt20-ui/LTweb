@@ -76,6 +76,7 @@ Authorization: Bearer <JWT>
 - `POST /api/project/create` - create project
 - `GET /api/project/my` - list projects where current user is involved
 - `GET /api/project/{id}` - get project detail
+- `PATCH /api/project/{id}` - update project, owner only
 - `DELETE /api/project/delete/{id}` - delete project, owner only
 
 ### Project Members
@@ -216,6 +217,35 @@ Response:
   "key": "MJ",
   "description": "Core services for mini jira",
   "status": "PLANNING",
+  "createdAt": "2026-03-13T10:15:30",
+  "ownerId": 1,
+  "ownerName": "Alice Nguyen"
+}
+```
+
+### Update Project
+
+```json
+PATCH /api/project/1
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "name": "Mini Jira Core API",
+  "description": "Updated backend scope",
+  "status": "IN_PROGRESS"
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "name": "Mini Jira Core API",
+  "key": "MJ",
+  "description": "Updated backend scope",
+  "status": "IN_PROGRESS",
   "createdAt": "2026-03-13T10:15:30",
   "ownerId": 1,
   "ownerName": "Alice Nguyen"
@@ -611,6 +641,3 @@ Example:
   "error": "Nguoi duoc giao khong la thanh vien cua project"
 }
 ```
-
-
-

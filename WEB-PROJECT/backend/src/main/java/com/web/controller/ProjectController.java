@@ -1,10 +1,11 @@
 package com.web.controller;
 
-import com.web.dto.project.CreateProjectRequest;
-import com.web.dto.project.ProjectResponse;
-import com.web.service.ProjectService;
 import com.web.dto.member.AddMemberRequest;
 import com.web.dto.member.MemberResponse;
+import com.web.dto.project.CreateProjectRequest;
+import com.web.dto.project.ProjectResponse;
+import com.web.dto.project.UpdateProjectRequest;
+import com.web.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,9 +18,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/project")
@@ -54,6 +55,15 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> getById(@PathVariable Integer id) {
         ProjectResponse res = projectService.getById(id);
         return ResponseEntity.ok(res);
+    }
+
+    // PATCH /api/project/{id}
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProjectResponse> update(@PathVariable Integer id,
+            @Valid @RequestBody UpdateProjectRequest request,
+            Authentication auth) {
+        ProjectResponse updated = projectService.updateProject(id, request, auth.getName());
+        return ResponseEntity.ok(updated);
     }
 
     // DELETE /api/project/delete/{id}

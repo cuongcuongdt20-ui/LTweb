@@ -4,6 +4,7 @@ import com.web.dto.member.AddMemberRequest;
 import com.web.dto.member.MemberResponse;
 import com.web.dto.project.CreateProjectRequest;
 import com.web.dto.project.ProjectResponse;
+import com.web.dto.project.UpdateProjectRequest;
 import com.web.entity.Project;
 import com.web.entity.ProjectMember;
 import com.web.entity.User;
@@ -41,11 +42,11 @@ public class ProjectService {
         String normalizedKey = req.getKey().trim().toUpperCase();
 
         if (projectRepository.existsByKey(normalizedKey)) {
-            throw new IllegalStateException("Key project dã t?n tai: " + normalizedKey);
+            throw new IllegalStateException("Key project da ton tai: " + normalizedKey);
         }
 
         User owner = userRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new IllegalStateException("Không tìm th?y user: " + ownerEmail));
+                .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + ownerEmail));
 
         Project p = new Project();
         p.setName(req.getName().trim());
@@ -61,43 +62,77 @@ public class ProjectService {
 
     public ProjectResponse getById(Integer id) {
         Project p = projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm th?y project id=" + id));
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + id));
         return toResponse(p);
+    }
+
+    public ProjectResponse updateProject(Integer id, UpdateProjectRequest req, String requesterEmail) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + id));
+
+        if (project.getOwner() == null || project.getOwner().getEmail() == null
+                || !project.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
+            throw new AccessDeniedException("Ban khong co quyen cap nhat project nay");
+        }
+
+        if (req.getName() != null) {
+            project.setName(req.getName().trim());
+        }
+
+        if (req.getKey() != null) {
+            String normalizedKey = req.getKey().trim().toUpperCase();
+            if (!normalizedKey.equals(project.getKey()) && projectRepository.existsByKey(normalizedKey)) {
+                throw new IllegalStateException("Key project da ton tai: " + normalizedKey);
+            }
+            project.setKey(normalizedKey);
+        }
+
+        if (req.getDescription() != null) {
+            String description = req.getDescription().trim();
+            project.setDescription(description.isEmpty() ? null : description);
+        }
+
+        if (req.getStatus() != null) {
+            project.setStatus(Project.ProjectStatus.valueOf(req.getStatus().trim().toUpperCase()));
+        }
+
+        Project saved = projectRepository.save(project);
+        return toResponse(saved);
     }
 
     @Transactional
     public void deleteById(Integer id, String requesterEmail) {
         Project p = projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm th?y project id=" + id));
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + id));
 
         if (p.getOwner() == null || p.getOwner().getEmail() == null ||
                 !p.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
-            throw new AccessDeniedException("B?n không du?c quy?n xóa project này");
+            throw new AccessDeniedException("Ban khong duoc quyen xoa project nay");
         }
         try {
             taskRepository.clearProjectByProjectId(id);
             projectMemberRepository.clearProjectByProjectId(id);
             projectRepository.delete(p);
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalStateException("Không th? xóa project dang du?c tham chi?u");
+            throw new IllegalStateException("Khong the xoa project dang duoc tham chieu");
         }
     }
 
     public MemberResponse addMember(Integer projectId, AddMemberRequest req, String requesterEmail) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm th?y project id=" + projectId));
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + projectId));
 
         if (project.getOwner() == null || project.getOwner().getEmail() == null ||
                 !project.getOwner().getEmail().equalsIgnoreCase(requesterEmail)) {
-            throw new AccessDeniedException("B?n không có quy?n thêm thành viên vào project này");
+            throw new AccessDeniedException("Ban khong co quyen them thanh vien vao project nay");
         }
 
         String email = req.getEmail().trim();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm th?y user v?i email: " + email));
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay user voi email: " + email));
 
         if (projectMemberRepository.existsByProjectAndUser(project, user)) {
-            throw new IllegalStateException("Ngu?i dùng dã là thành viên c?a project");
+            throw new IllegalStateException("Nguoi dung da la thanh vien cua project");
         }
 
         ProjectMember pm = new ProjectMember();
@@ -112,9 +147,8 @@ public class ProjectService {
     }
 
     public List<MemberResponse> listMembers(Integer projectId) {
-        // Ensure project exists
         projectRepository.findById(projectId)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm th?y project id=" + projectId));
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + projectId));
 
         return projectMemberRepository.findByProjectId(projectId)
                 .stream()
@@ -141,7 +175,7 @@ public class ProjectService {
 
     public java.util.List<ProjectResponse> listMyProjects(String requesterEmail) {
         User user = userRepository.findByEmail(requesterEmail)
-                .orElseThrow(() -> new IllegalStateException("Không tìm th?y user: " + requesterEmail));
+                .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + requesterEmail));
         java.util.List<Project> projects = projectRepository.findAllInvolvedByUserId(user.getId());
         return projects.stream().map(p -> {
             ProjectResponse res = toResponse(p);
@@ -156,8 +190,9 @@ public class ProjectService {
                     role = (r == null || r.trim().isEmpty()) ? "MEMBER" : r.trim();
                 }
             }
-            if (role == null)
+            if (role == null) {
                 role = "MEMBER";
+            }
             res.setRole(role);
             return res;
         }).collect(java.util.stream.Collectors.toList());
