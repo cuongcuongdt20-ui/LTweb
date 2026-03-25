@@ -131,6 +131,10 @@ public class ProjectService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Khong tim thay user voi email: " + email));
 
+        if (email.equalsIgnoreCase(project.getOwner().getEmail().trim())) {
+            throw new IllegalStateException("Không thể thao tác với owner của project");
+        }
+
         if (projectMemberRepository.existsByProjectAndUser(project, user)) {
             throw new IllegalStateException("Nguoi dung da la thanh vien cua project");
         }
