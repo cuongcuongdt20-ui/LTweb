@@ -1,16 +1,16 @@
 # MiniJira Backend
 
-## Requirements
+## Yeu cau
 
 - JDK 17
 - Maven
 - MySQL
 
-## Configuration
+## Cau hinh
 
-Update database config in `src/main/resources/application.properties`.
+Cap nhat cau hinh database trong `src/main/resources/application.properties`.
 
-Example:
+Vi du:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/ten_database
@@ -22,32 +22,32 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 ```
 
-Create database if needed:
+Neu chua co database thi tao truoc:
 
 ```sql
 CREATE DATABASE ten_database;
 ```
 
-## Run
+## Chay du an
 
 ```bash
 mvn clean install
 mvn spring-boot:run
 ```
 
-Default server:
+Server mac dinh:
 
 ```text
 http://localhost:8080
 ```
 
-If port `8080` is busy, change:
+Neu cong `8080` dang ban, doi trong file cau hinh:
 
 ```properties
 server.port=8081
 ```
 
-## Main Structure
+## Cau truc chinh
 
 ```text
 src
@@ -60,7 +60,7 @@ src
 
 ## API
 
-Note: except `/api/auth/**`, all endpoints require:
+Luu y: ngoai tru `/api/auth/**`, tat ca endpoint deu can header:
 
 ```http
 Authorization: Bearer <JWT>
@@ -68,40 +68,40 @@ Authorization: Bearer <JWT>
 
 ### Auth
 
-- `POST /api/auth/signup` - register user
-- `POST /api/auth/signin` - sign in and return JWT
+- `POST /api/auth/signup` - dang ky tai khoan
+- `POST /api/auth/signin` - dang nhap va nhan JWT
 
 ### Project
 
-- `POST /api/project/create` - create project
-- `GET /api/project/my` - list projects where current user is involved
-- `GET /api/project/{id}` - get project detail
-- `PATCH /api/project/{id}` - update project, owner only
-- `DELETE /api/project/delete/{id}` - delete project, owner only
+- `POST /api/project/create` - tao project
+- `GET /api/project/my` - lay danh sach project ma nguoi dung hien tai tham gia
+- `GET /api/project/{id}` - lay chi tiet project
+- `PATCH /api/project/{id}` - cap nhat project, chi owner duoc phep
+- `DELETE /api/project/delete/{id}` - xoa project, chi owner duoc phep
 
-### Project Members
+### Thanh vien project
 
-- `POST /api/project/{id}/members` - add member by email, owner only
-- `GET /api/project/{id}/members` - list project members
+- `POST /api/project/{id}/members` - them thanh vien theo email, chi owner duoc phep
+- `GET /api/project/{id}/members` - lay danh sach thanh vien cua project
 
 ### Task
 
-- `POST /api/project/{projectId}/tasks` - create task, owner only
-- `GET /api/project/{projectId}/tasks/my` - if current user is project owner then list all project tasks, if current user is member then list only tasks assigned to them in that project
-- `GET /api/tasks/my` - list all tasks assigned to current user across all projects
-- `PATCH /api/project/{projectId}/tasks/{taskId}/status` - update task status, assignee only
-- `GET /api/project/{projectId}/tasks/{taskId}/history` - list task status history, project owner or task assignee only
-- `DELETE /api/project/{projectId}/tasks/{taskId}` - delete task, owner only
+- `POST /api/project/{projectId}/tasks` - tao task, chi owner duoc phep
+- `GET /api/project/{projectId}/tasks/my` - neu nguoi dung hien tai la owner thi tra ve tat ca task cua project, neu la member thi chi tra ve task duoc giao cho nguoi do trong project
+- `GET /api/tasks/my` - lay tat ca task duoc giao cho nguoi dung hien tai o moi project
+- `PATCH /api/project/{projectId}/tasks/{taskId}/status` - cap nhat trang thai task, chi assignee duoc phep
+- `GET /api/project/{projectId}/tasks/{taskId}/history` - lay lich su thay doi trang thai task, chi project owner hoac task assignee duoc phep
+- `DELETE /api/project/{projectId}/tasks/{taskId}` - xoa task, chi owner duoc phep
 
 ### Comment
 
-- `GET /api/project/{projectId}/tasks/{taskId}/comments` - list comments, project owner or task assignee only
-- `POST /api/project/{projectId}/tasks/{taskId}/comments` - create comment, project owner or task assignee only
-- `DELETE /api/project/{projectId}/tasks/{taskId}/comments/{commentId}` - delete comment, project owner or task assignee only
+- `GET /api/project/{projectId}/tasks/{taskId}/comments` - lay danh sach comment, chi project owner hoac task assignee duoc phep
+- `POST /api/project/{projectId}/tasks/{taskId}/comments` - tao comment, chi project owner hoac task assignee duoc phep
+- `DELETE /api/project/{projectId}/tasks/{taskId}/comments/{commentId}` - xoa comment, chi project owner hoac task assignee duoc phep
 
-## Request And Response Samples
+## Mau request va response
 
-### Sign Up
+### Dang ky
 
 ```json
 POST /api/auth/signup
@@ -121,7 +121,7 @@ Response:
 "Dang ky thanh cong!"
 ```
 
-### Sign In
+### Dang nhap
 
 ```json
 POST /api/auth/signin
@@ -148,7 +148,7 @@ Response:
 }
 ```
 
-### Create Project
+### Tao project
 
 ```json
 POST /api/project/create
@@ -177,7 +177,7 @@ Response:
 }
 ```
 
-### List My Projects
+### Lay danh sach project cua toi
 
 ```json
 GET /api/project/my
@@ -202,7 +202,7 @@ Response:
 ]
 ```
 
-### Get Project Detail
+### Lay chi tiet project
 
 ```json
 GET /api/project/1
@@ -224,7 +224,7 @@ Response:
 }
 ```
 
-### Update Project
+### Cap nhat project
 
 ```json
 PATCH /api/project/1
@@ -253,7 +253,7 @@ Response:
 }
 ```
 
-### Add Member
+### Them thanh vien
 
 ```json
 POST /api/project/1/members
@@ -281,7 +281,7 @@ Response:
 }
 ```
 
-### List Members
+### Lay danh sach thanh vien
 
 ```json
 GET /api/project/1/members
@@ -305,7 +305,7 @@ Response:
 ]
 ```
 
-### Create Task
+### Tao task
 
 ```json
 POST /api/project/1/tasks
@@ -348,7 +348,7 @@ Response:
 }
 ```
 
-### List My Project Tasks
+### Lay task cua toi trong project
 
 ```json
 GET /api/project/1/tasks/my
@@ -383,12 +383,12 @@ Response:
 ]
 ```
 
-Note:
+Luu y:
 
-- If current user is the owner of project `1`, this endpoint returns all tasks in that project.
-- If current user is a member of project `1`, this endpoint returns only tasks assigned to that user.
+- Neu nguoi dung hien tai la owner cua project `1`, endpoint nay tra ve tat ca task trong project.
+- Neu nguoi dung hien tai la member cua project `1`, endpoint nay chi tra ve task duoc giao cho nguoi do.
 
-### List All Assigned Tasks
+### Lay tat ca task duoc giao
 
 ```json
 GET /api/tasks/my
@@ -423,7 +423,7 @@ Response:
 ]
 ```
 
-### Update Task Status
+### Cap nhat trang thai task
 
 ```json
 PATCH /api/project/1/tasks/5/status
@@ -461,12 +461,12 @@ Response:
 }
 ```
 
-Note:
+Luu y:
 
-- When task status actually changes, the backend automatically creates a `task_history` record.
-- History stores `oldStatus`, `newStatus`, `progressAtThatTime`, `changedAt`, and the user who made the change.
+- Khi trang thai task thay doi thuc su, backend tu dong tao mot ban ghi `task_history`.
+- Lich su se luu `oldStatus`, `newStatus`, `progressAtThatTime`, `changedAt` va nguoi thuc hien thay doi.
 
-### Get Task History
+### Lay lich su task
 
 ```json
 GET /api/project/1/tasks/5/history
@@ -504,32 +504,32 @@ Response:
 ]
 ```
 
-### Delete Endpoints
+### Cac endpoint xoa
 
 - `DELETE /api/project/delete/{id}` -> `204 No Content`
 - `DELETE /api/project/{projectId}/tasks/{taskId}` -> `204 No Content`
 - `DELETE /api/project/{projectId}/tasks/{taskId}/comments/{commentId}` -> `204 No Content`
 
-### Comment APIs
+### API comment
 
-#### 1. Get Comments
+#### 1. Lay danh sach comment
 
-Use this endpoint to get all comments of a task.
+Dung endpoint nay de lay tat ca comment cua mot task.
 
 - Method: `GET`
 - URL: `/api/project/{projectId}/tasks/{taskId}/comments`
 - Authorization: `Bearer <JWT>`
-- Permission: project owner or task assignee
-- Order: oldest comment first by `createdAt`
+- Quyen truy cap: project owner hoac task assignee
+- Thu tu: comment cu nhat dung truoc theo `createdAt`
 
-Example request:
+Vi du request:
 
 ```json
 GET /api/project/1/tasks/5/comments
 Authorization: Bearer <JWT>
 ```
 
-Success response: `200 OK`
+Response thanh cong: `200 OK`
 
 ```json
 [
@@ -556,13 +556,13 @@ Success response: `200 OK`
 ]
 ```
 
-Possible errors:
+Co the gap cac loi:
 
-- `401 Unauthorized` - missing or invalid JWT
-- `403 Forbidden` - current user is not project owner and not task assignee
-- `404 Not Found` - task does not exist in the project
+- `401 Unauthorized` - thieu JWT hoac JWT khong hop le
+- `403 Forbidden` - nguoi dung hien tai khong phai project owner va cung khong phai task assignee
+- `404 Not Found` - task khong ton tai trong project
 
-Error example:
+Vi du loi:
 
 ```json
 {
@@ -570,14 +570,14 @@ Error example:
 }
 ```
 
-#### 2. Create Comment
+#### 2. Tao comment
 
-Use this endpoint to add a comment to a task.
+Dung endpoint nay de them comment vao task.
 
 - Method: `POST`
 - URL: `/api/project/{projectId}/tasks/{taskId}/comments`
 - Authorization: `Bearer <JWT>`
-- Permission: project owner or task assignee
+- Quyen truy cap: project owner hoac task assignee
 
 Request body:
 
@@ -587,13 +587,13 @@ Request body:
 }
 ```
 
-Validation:
+Rang buoc:
 
-- `content` is required
-- `content` must not be blank
-- `content` maximum length is `5000` characters
+- `content` la bat buoc
+- `content` khong duoc rong
+- `content` toi da `5000` ky tu
 
-Example request:
+Vi du request:
 
 ```json
 POST /api/project/1/tasks/5/comments
@@ -605,7 +605,7 @@ Content-Type: application/json
 }
 ```
 
-Success response: `201 Created`
+Response thanh cong: `201 Created`
 
 ```json
 {
@@ -620,14 +620,14 @@ Success response: `201 Created`
 }
 ```
 
-Possible errors:
+Co the gap cac loi:
 
-- `400 Bad Request` - `content` is blank or longer than `5000` characters
-- `401 Unauthorized` - missing or invalid JWT
-- `403 Forbidden` - current user is not project owner and not task assignee
-- `404 Not Found` - task does not exist in the project
+- `400 Bad Request` - `content` rong hoac vuot qua `5000` ky tu
+- `401 Unauthorized` - thieu JWT hoac JWT khong hop le
+- `403 Forbidden` - nguoi dung hien tai khong phai project owner va cung khong phai task assignee
+- `404 Not Found` - task khong ton tai trong project
 
-Error example:
+Vi du loi:
 
 ```json
 {
@@ -635,31 +635,31 @@ Error example:
 }
 ```
 
-#### 3. Delete Comment
+#### 3. Xoa comment
 
-Use this endpoint to delete a comment from a task.
+Dung endpoint nay de xoa comment khoi task.
 
 - Method: `DELETE`
 - URL: `/api/project/{projectId}/tasks/{taskId}/comments/{commentId}`
 - Authorization: `Bearer <JWT>`
-- Permission: project owner or task assignee
+- Quyen truy cap: project owner hoac task assignee
 
-Example request:
+Vi du request:
 
 ```json
 DELETE /api/project/1/tasks/5/comments/12
 Authorization: Bearer <JWT>
 ```
 
-Success response: `204 No Content`
+Response thanh cong: `204 No Content`
 
-Possible errors:
+Co the gap cac loi:
 
-- `401 Unauthorized` - missing or invalid JWT
-- `403 Forbidden` - current user is not project owner and not task assignee
-- `404 Not Found` - task or comment does not exist
+- `401 Unauthorized` - thieu JWT hoac JWT khong hop le
+- `403 Forbidden` - nguoi dung hien tai khong phai project owner va cung khong phai task assignee
+- `404 Not Found` - task hoac comment khong ton tai
 
-Error example:
+Vi du loi:
 
 ```json
 {
@@ -667,15 +667,15 @@ Error example:
 }
 ```
 
-## Common Errors
+## Loi thuong gap
 
-- `400 Bad Request` - validation failed
-- `401 Unauthorized` - signin failed, missing JWT, or invalid JWT
-- `403 Forbidden` - permission denied
-- `404 Not Found` - project, user, or task not found
-- `409 Conflict` - duplicate key, invalid state, or referenced record
+- `400 Bad Request` - du lieu gui len khong hop le
+- `401 Unauthorized` - dang nhap that bai, thieu JWT, hoac JWT khong hop le
+- `403 Forbidden` - khong du quyen truy cap
+- `404 Not Found` - khong tim thay project, user hoac task
+- `409 Conflict` - trung du lieu, trang thai khong hop le, hoac xung dot du lieu lien quan
 
-Example:
+Vi du:
 
 ```json
 {
