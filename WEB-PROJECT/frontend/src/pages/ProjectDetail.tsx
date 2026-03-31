@@ -67,7 +67,7 @@ export default function ProjectDetail() {
                 axios.get(`http://localhost:5000/api/projects/${id}`, config), 
                 axios.get(`http://localhost:5000/api/tasks/project/${id}`, config),
                 axios.get(`http://localhost:5000/api/projects/${id}/members`, config),
-                axios.get(`http://localhost:5000/api/users`, config) // Vẫn cần cái này để map tên ở bảng
+                axios.get(`http://localhost:5000/api/users`, config) 
             ]); 
 
             setProject(projectRes.data); 
@@ -493,7 +493,7 @@ export default function ProjectDetail() {
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/30 backdrop-blur-sm p-4">
                     <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-2xl border border-gray-100">
-                        <h2 className="text-2xl font-black text-gray-900 mb-8">Tạo công việc mới 🚀</h2>
+                        <h2 className="text-2xl font-black text-gray-900 mb-8">Tạo công việc mới</h2>
                         <form onSubmit={handleCreateTask} className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-black-400 uppercase tracking-widest">Tiêu đề</label>
