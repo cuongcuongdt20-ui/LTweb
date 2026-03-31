@@ -154,11 +154,8 @@ public class ProjectService {
         projectRepository.findById(projectId)
                 .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + projectId));
 
-        if (projectMemberRepository.findByProjectId(projectId).isEmpty()) {
-            throw new NoSuchElementException("Chưa có người dùng nào trong project");
-        }
-
-        return projectMemberRepository.findByProjectId(projectId)
+        List<ProjectMember> members = projectMemberRepository.findByProjectId(projectId);
+        return members
                 .stream()
                 .map(this::toMemberResponse)
                 .collect(Collectors.toList());
