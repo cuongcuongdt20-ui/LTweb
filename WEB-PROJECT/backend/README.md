@@ -87,7 +87,8 @@ Authorization: Bearer <JWT>
 ### Task
 
 - `POST /api/project/{projectId}/tasks` - create task, owner only
-- `GET /api/project/{projectId}/tasks/my` - list tasks assigned to current user in that project
+- `GET /api/project/{projectId}/tasks/my` - if current user is project owner then list all project tasks, if current user is member then list only tasks assigned to them in that project
+- `GET /api/tasks/my` - list all tasks assigned to current user across all projects
 - `PATCH /api/project/{projectId}/tasks/{taskId}/status` - update task status, assignee only
 - `GET /api/project/{projectId}/tasks/{taskId}/history` - list task status history, project owner or task assignee only
 - `DELETE /api/project/{projectId}/tasks/{taskId}` - delete task, owner only
@@ -347,10 +348,50 @@ Response:
 }
 ```
 
-### List My Tasks
+### List My Project Tasks
 
 ```json
 GET /api/project/1/tasks/my
+Authorization: Bearer <JWT>
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 5,
+    "projectId": 1,
+    "title": "Fix login bug",
+    "description": "Redirect loop after signin",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "progress": null,
+    "estimatedHours": 6.0,
+    "actualHours": null,
+    "startedAt": "2026-03-19T09:05:00",
+    "completedAt": null,
+    "dueDate": "2026-03-20T18:00:00",
+    "createdAt": "2026-03-19T09:00:00",
+    "updatedAt": "2026-03-19T09:05:00",
+    "assigneeId": 2,
+    "assigneeName": "Bob Tran",
+    "assigneeEmail": "bob@example.com",
+    "reporterId": 1,
+    "reporterName": "Alice Nguyen"
+  }
+]
+```
+
+Note:
+
+- If current user is the owner of project `1`, this endpoint returns all tasks in that project.
+- If current user is a member of project `1`, this endpoint returns only tasks assigned to that user.
+
+### List All Assigned Tasks
+
+```json
+GET /api/tasks/my
 Authorization: Bearer <JWT>
 ```
 

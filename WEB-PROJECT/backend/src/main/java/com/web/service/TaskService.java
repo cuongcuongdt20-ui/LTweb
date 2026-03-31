@@ -92,11 +92,28 @@ public class TaskService {
         User user = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + requesterEmail));
 
-        if (!isOwner(project, requesterEmail) && !isActiveMember(projectId, user.getId())) {
+        if (isOwner(project, requesterEmail)) {
+            return taskRepository.findByProjectId(projectId)
+                    .stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        if (!isActiveMember(projectId, user.getId())) {
             throw new AccessDeniedException("Ban khong co quyen xem task trong project nay");
         }
 
         return taskRepository.findByProjectIdAndAssigneeId(projectId, user.getId())
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<TaskResponse> listAssignedTasks(String requesterEmail) {
+        User user = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + requesterEmail));
+
+        return taskRepository.findByAssigneeId(user.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

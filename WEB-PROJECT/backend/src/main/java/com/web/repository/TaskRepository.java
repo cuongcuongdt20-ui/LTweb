@@ -12,7 +12,11 @@ import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
+    List<Task> findByProjectId(Integer projectId);
+
     List<Task> findByProjectIdAndAssigneeId(Integer projectId, Long assigneeId);
+
+    List<Task> findByAssigneeId(Long assigneeId);
 
     Optional<Task> findByIdAndProjectId(Integer id, Integer projectId);
 
