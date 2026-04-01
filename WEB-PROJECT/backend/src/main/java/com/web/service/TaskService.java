@@ -1,9 +1,7 @@
 package com.web.service;
 
-import com.web.dto.task.CreateTaskRequest;
 import com.web.dto.task.TaskHistoryResponse;
 import com.web.dto.task.TaskResponse;
-import com.web.dto.task.UpdateTaskStatusRequest;
 import com.web.entity.Project;
 import com.web.entity.ProjectMember;
 import com.web.entity.Task;
@@ -22,13 +20,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Service
 public class TaskService {
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     @Autowired
     private TaskRepository taskRepository;
@@ -48,7 +51,7 @@ public class TaskService {
     @Autowired
     private CommentRepository commentRepository;
 
-    public TaskResponse createTask(Integer projectId, CreateTaskRequest req, String requesterEmail) {
+    public TaskResponse createTask(Integer projectId, Map<String, Object> req, String requesterEmail) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NoSuchElementException("Khong tim thay project id=" + projectId));
 
@@ -59,22 +62,36 @@ public class TaskService {
         User reporter = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + requesterEmail));
 
-        String assigneeEmail = req.getAssigneeEmail().trim();
-        User assignee = userRepository.findByEmail(assigneeEmail)
-                .orElseThrow(() -> new NoSuchElementException("Khong tim thay user voi email: " + assigneeEmail));
-
-        if (!isOwner(project, assignee.getEmail()) && !isActiveMember(project.getId(), assignee.getId())) {
-            throw new IllegalStateException("Nguoi duoc giao khong la thanh vien cua project");
+        String title = requireText(req, "title", "Tieu de task khong duoc de trong");
+        if (title.length() > 255) {
+            throw new IllegalArgumentException("Tieu de toi da 255 ky tu");
         }
+
+        String description = optionalText(req, "description");
+        if (description != null && description.length() > 2000) {
+            throw new IllegalArgumentException("Mo ta toi da 2000 ky tu");
+        }
+
+        String assigneeEmail = requireText(req, "assigneeEmail", "Email nguoi duoc giao khong duoc de trong");
+        validateEmail(assigneeEmail);
+
+        String priority = optionalText(req, "priority");
+        Double estimatedHours = optionalDouble(req, "estimatedHours");
+        LocalDateTime startedAt = optionalDateTime(req, "startedAt");
+        LocalDateTime dueDate = optionalDateTime(req, "dueDate");
+
+        User assignee = resolveAssignee(project, assigneeEmail);
 
         Task task = new Task();
-        task.setTitle(req.getTitle().trim());
-        task.setDescription(req.getDescription());
-        if (req.getPriority() != null && !req.getPriority().trim().isEmpty()) {
-            task.setPriority(req.getPriority().trim());
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setStatus(Task.TaskStatus.TODO.name());
+        if (priority != null) {
+            task.setPriority(priority);
         }
-        task.setEstimatedHours(req.getEstimatedHours());
-        task.setDueDate(req.getDueDate());
+        task.setEstimatedHours(estimatedHours);
+        task.setStartedAt(startedAt);
+        task.setDueDate(dueDate);
         task.setProject(project);
         task.setAssignee(assignee);
         task.setReporter(reporter);
@@ -136,7 +153,66 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public TaskResponse updateStatus(Integer projectId, Integer taskId, UpdateTaskStatusRequest req,
+    public TaskResponse updateTask(Integer projectId, Integer taskId, Map<String, Object> req, String requesterEmail) {
+        Task task = taskRepository.findByIdAndProjectId(taskId, projectId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay task id=" + taskId));
+
+        if (!isOwner(task.getProject(), requesterEmail)) {
+            throw new AccessDeniedException("Chi owner project moi duoc cap nhat thong tin task");
+        }
+
+        if (req.containsKey("title")) {
+            String title = requireText(req, "title", "Tieu de task khong duoc de trong");
+            if (title.length() > 255) {
+                throw new IllegalArgumentException("Tieu de toi da 255 ky tu");
+            }
+            task.setTitle(title);
+        }
+
+        if (req.containsKey("description")) {
+            String description = optionalText(req, "description");
+            if (description != null && description.length() > 2000) {
+                throw new IllegalArgumentException("Mo ta toi da 2000 ky tu");
+            }
+            task.setDescription(description);
+        }
+
+        if (req.containsKey("priority")) {
+            String priority = optionalText(req, "priority");
+            if (priority == null) {
+                task.setPriority("MEDIUM");
+            } else {
+                task.setPriority(priority);
+            }
+        }
+
+        if (req.containsKey("estimatedHours")) {
+            task.setEstimatedHours(optionalDouble(req, "estimatedHours"));
+        }
+
+        if (req.containsKey("actualHours")) {
+            task.setActualHours(optionalDouble(req, "actualHours"));
+        }
+
+        if (req.containsKey("startedAt")) {
+            task.setStartedAt(optionalDateTime(req, "startedAt"));
+        }
+
+        if (req.containsKey("dueDate")) {
+            task.setDueDate(optionalDateTime(req, "dueDate"));
+        }
+
+        if (req.containsKey("assigneeEmail")) {
+            task.setAssignee(resolveAssignee(task.getProject(), requireText(req, "assigneeEmail",
+                    "Email nguoi duoc giao khong duoc de trong")));
+        }
+
+        task.setUpdatedAt(LocalDateTime.now());
+        Task saved = taskRepository.save(task);
+        return toResponse(saved);
+    }
+
+    public TaskResponse updateStatus(Integer projectId, Integer taskId, Map<String, Object> req,
             String requesterEmail) {
         Task task = taskRepository.findByIdAndProjectId(taskId, projectId)
                 .orElseThrow(() -> new NoSuchElementException("Khong tim thay task id=" + taskId));
@@ -144,33 +220,31 @@ public class TaskService {
         User requester = userRepository.findByEmail(requesterEmail)
                 .orElseThrow(() -> new IllegalStateException("Khong tim thay user: " + requesterEmail));
 
-        if (task.getAssignee() == null || task.getAssignee().getId() == null
-                || !task.getAssignee().getId().equals(requester.getId())) {
-            throw new AccessDeniedException("Ban chi co the cap nhat trang thai task duoc giao cho minh");
+        boolean owner = isOwner(task.getProject(), requesterEmail);
+        boolean assignee = isAssignee(task, requester.getId());
+        if (!owner && !assignee) {
+            throw new AccessDeniedException("Chi owner project hoac nguoi duoc giao task moi duoc cap nhat trang thai");
         }
 
-        if (!isOwner(task.getProject(), requesterEmail) && !isActiveMember(projectId, requester.getId())) {
+        if (!owner && !isActiveMember(projectId, requester.getId())) {
             throw new AccessDeniedException("Ban khong con la thanh vien cua project nay");
         }
 
-        String newStatus = req.getStatus().trim();
-        String oldStatus = task.getStatus();
-        boolean statusChanged = oldStatus == null || !oldStatus.equalsIgnoreCase(newStatus);
+        Task.TaskStatus newStatus = Task.TaskStatus
+                .fromRequest(requireText(req, "status", "Trang thai khong duoc de trong"));
+        String normalizedNewStatus = newStatus.name();
+        String oldStatus = normalizeStatus(task.getStatus());
+        boolean statusChanged = oldStatus == null || !oldStatus.equals(normalizedNewStatus);
         LocalDateTime now = LocalDateTime.now();
         if (statusChanged) {
-            task.setStatus(newStatus);
+            task.setStatus(normalizedNewStatus);
         }
         task.setUpdatedAt(now);
-        if (task.getStartedAt() == null && "IN_PROGRESS".equalsIgnoreCase(newStatus)) {
-            task.setStartedAt(now);
-        }
-        if ("DONE".equalsIgnoreCase(newStatus) || "COMPLETED".equalsIgnoreCase(newStatus)) {
-            task.setCompletedAt(now);
-        }
+        updateTaskTimeline(task, oldStatus, newStatus, now);
 
         Task saved = taskRepository.save(task);
         if (statusChanged) {
-            createTaskHistory(saved, requester, oldStatus, newStatus, now);
+            createTaskHistory(saved, requester, oldStatus, normalizedNewStatus, now);
         }
         return toResponse(saved);
     }
@@ -216,6 +290,19 @@ public class TaskService {
                 && task.getAssignee().getId().equals(userId);
     }
 
+    private User resolveAssignee(Project project, String assigneeEmail) {
+        validateEmail(assigneeEmail);
+
+        User assignee = userRepository.findByEmail(assigneeEmail)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay user voi email: " + assigneeEmail));
+
+        if (!isOwner(project, assignee.getEmail()) && !isActiveMember(project.getId(), assignee.getId())) {
+            throw new IllegalStateException("Nguoi duoc giao khong la thanh vien cua project");
+        }
+
+        return assignee;
+    }
+
     private void createTaskHistory(Task task, User user, String oldStatus, String newStatus, LocalDateTime changedAt) {
         TaskHistory history = new TaskHistory();
         history.setTask(task);
@@ -225,6 +312,95 @@ public class TaskService {
         history.setProgressAtThatTime(task.getProgress());
         history.setChangedAt(changedAt);
         taskHistoryRepository.save(history);
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return null;
+        }
+        return Task.TaskStatus.fromStoredValue(status).name();
+    }
+
+    private void updateTaskTimeline(Task task, String oldStatus, Task.TaskStatus newStatus, LocalDateTime now) {
+        if ((newStatus == Task.TaskStatus.IN_PROGRESS || newStatus == Task.TaskStatus.DONE)
+                && task.getStartedAt() == null) {
+            task.setStartedAt(now);
+        }
+
+        if (newStatus == Task.TaskStatus.DONE) {
+            if (!Task.TaskStatus.DONE.name().equals(oldStatus) || task.getCompletedAt() == null) {
+                task.setCompletedAt(now);
+            }
+            return;
+        }
+
+        if (task.getCompletedAt() != null) {
+            task.setCompletedAt(null);
+        }
+    }
+
+    private String requireText(Map<String, Object> payload, String field, String message) {
+        String value = optionalText(payload, field);
+        if (value == null) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
+    }
+
+    private String optionalText(Map<String, Object> payload, String field) {
+        Object value = payload.get(field);
+        if (value == null) {
+            return null;
+        }
+
+        String text = value.toString().trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    private Double optionalDouble(Map<String, Object> payload, String field) {
+        Object value = payload.get(field);
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+
+        String text = value.toString().trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return Double.valueOf(text);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Gia tri " + field + " khong hop le");
+        }
+    }
+
+    private LocalDateTime optionalDateTime(Map<String, Object> payload, String field) {
+        Object value = payload.get(field);
+        if (value == null) {
+            return null;
+        }
+
+        String text = value.toString().trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(text);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Gia tri " + field + " khong hop le, dung dinh dang ISO-8601");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            throw new IllegalArgumentException("Email khong hop le");
+        }
     }
 
     private TaskResponse toResponse(Task task) {

@@ -2,10 +2,8 @@ package com.web.controller;
 
 import com.web.dto.comment.CommentResponse;
 import com.web.dto.comment.CreateCommentRequest;
-import com.web.dto.task.CreateTaskRequest;
 import com.web.dto.task.TaskHistoryResponse;
 import com.web.dto.task.TaskResponse;
-import com.web.dto.task.UpdateTaskStatusRequest;
 import com.web.service.CommentService;
 import com.web.service.TaskService;
 import jakarta.validation.Valid;
@@ -38,7 +36,7 @@ public class TaskController {
     // POST /api/project/{projectId}/tasks
     @PostMapping("/{projectId}/tasks")
     public ResponseEntity<?> createTask(@PathVariable Integer projectId,
-            @Valid @RequestBody CreateTaskRequest request,
+            @RequestBody Map<String, Object> request,
             Authentication auth) {
         TaskResponse created = taskService.createTask(projectId, request, auth.getName());
         URI location = ServletUriComponentsBuilder
@@ -56,11 +54,21 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    // PATCH /api/project/{projectId}/tasks/{taskId}
+    @PatchMapping("/{projectId}/tasks/{taskId}")
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable Integer projectId,
+            @PathVariable Integer taskId,
+            @RequestBody Map<String, Object> request,
+            Authentication auth) {
+        TaskResponse updated = taskService.updateTask(projectId, taskId, request, auth.getName());
+        return ResponseEntity.ok(updated);
+    }
+
     // PATCH /api/project/{projectId}/tasks/{taskId}/status
     @PatchMapping("/{projectId}/tasks/{taskId}/status")
     public ResponseEntity<TaskResponse> updateStatus(@PathVariable Integer projectId,
             @PathVariable Integer taskId,
-            @Valid @RequestBody UpdateTaskStatusRequest request,
+            @RequestBody Map<String, Object> request,
             Authentication auth) {
         TaskResponse updated = taskService.updateStatus(projectId, taskId, request, auth.getName());
         return ResponseEntity.ok(updated);
@@ -137,5 +145,12 @@ public class TaskController {
         Map<String, Object> err = new HashMap<>();
         err.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleBadRequest(IllegalArgumentException ex) {
+        Map<String, Object> err = new HashMap<>();
+        err.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
 }

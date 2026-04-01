@@ -79,6 +79,10 @@ Authorization: Bearer <JWT>
 - `PATCH /api/project/{id}` - cap nhat project, chi owner duoc phep
 - `DELETE /api/project/delete/{id}` - xoa project, chi owner duoc phep
 
+Luu y:
+
+- Khi tao project, owner duoc tu dong them vao `project_members` voi role `MANAGER`.
+
 ### Thanh vien project
 
 - `POST /api/project/{id}/members` - them thanh vien theo email, chi owner duoc phep
@@ -87,9 +91,10 @@ Authorization: Bearer <JWT>
 ### Task
 
 - `POST /api/project/{projectId}/tasks` - tao task, chi owner duoc phep
+- `PATCH /api/project/{projectId}/tasks/{taskId}` - cap nhat thong tin task, chi owner duoc phep
 - `GET /api/project/{projectId}/tasks/my` - neu nguoi dung hien tai la owner thi tra ve tat ca task cua project, neu la member thi chi tra ve task duoc giao cho nguoi do trong project
 - `GET /api/tasks/my` - lay tat ca task duoc giao cho nguoi dung hien tai o moi project
-- `PATCH /api/project/{projectId}/tasks/{taskId}/status` - cap nhat trang thai task, chi assignee duoc phep
+- `PATCH /api/project/{projectId}/tasks/{taskId}/status` - cap nhat trang thai task, chi owner project hoac assignee duoc phep
 - `GET /api/project/{projectId}/tasks/{taskId}/history` - lay lich su thay doi trang thai task, chi project owner hoac task assignee duoc phep
 - `DELETE /api/project/{projectId}/tasks/{taskId}` - xoa task, chi owner duoc phep
 
@@ -318,6 +323,7 @@ Content-Type: application/json
   "assigneeEmail": "bob@example.com",
   "priority": "HIGH",
   "estimatedHours": 6,
+  "startedAt": "2026-03-19T09:00:00",
   "dueDate": "2026-03-20T18:00:00"
 }
 ```
@@ -330,12 +336,12 @@ Response:
   "projectId": 1,
   "title": "Fix login bug",
   "description": "Redirect loop after signin",
-  "status": null,
+  "status": "TODO",
   "priority": "HIGH",
-  "progress": null,
+  "progress": 0,
   "estimatedHours": 6.0,
-  "actualHours": null,
-  "startedAt": null,
+  "actualHours": 0.0,
+  "startedAt": "2026-03-19T09:00:00",
   "completedAt": null,
   "dueDate": "2026-03-20T18:00:00",
   "createdAt": "2026-03-19T09:00:00",
@@ -463,7 +469,10 @@ Response:
 
 Luu y:
 
+- Owner co the tu giao task cho chinh minh bang cach truyen email cua chinh owner vao `assigneeEmail`.
+- `startedAt` la field tuy chon khi tao task.
 - Khi trang thai task thay doi thuc su, backend tu dong tao mot ban ghi `task_history`.
+- Status hop le cho task: `TODO`, `IN_PROGRESS`, `REVIEW`, `DONE`.
 - Lich su se luu `oldStatus`, `newStatus`, `progressAtThatTime`, `changedAt` va nguoi thuc hien thay doi.
 
 ### Lay lich su task

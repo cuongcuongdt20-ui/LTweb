@@ -38,6 +38,7 @@ public class ProjectService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Transactional
     public ProjectResponse createProject(CreateProjectRequest req, String ownerEmail) {
         String normalizedKey = req.getKey().trim().toUpperCase();
 
@@ -57,6 +58,7 @@ public class ProjectService {
         p.setOwner(owner);
 
         Project saved = projectRepository.save(p);
+        createOwnerMembership(saved, owner);
         return toResponse(saved);
     }
 
@@ -176,6 +178,19 @@ public class ProjectService {
         res.setJoinedAt(pm.getJoinedAt());
         res.setLeftAt(pm.getLeftAt());
         return res;
+    }
+
+    private void createOwnerMembership(Project project, User owner) {
+        if (projectMemberRepository.existsByProjectAndUser(project, owner)) {
+            return;
+        }
+
+        ProjectMember pm = new ProjectMember();
+        pm.setProject(project);
+        pm.setUser(owner);
+        pm.setRole("MANAGER");
+        pm.setJoinedAt(LocalDateTime.now());
+        projectMemberRepository.save(pm);
     }
 
     public java.util.List<ProjectResponse> listMyProjects(String requesterEmail) {
